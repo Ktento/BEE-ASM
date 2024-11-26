@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+
+echo "This is a placeholder for the vulnerability assessment tool (VAT)."
+echo "Replace me with real one!"
