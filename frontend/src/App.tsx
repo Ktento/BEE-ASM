@@ -5,25 +5,31 @@ function App() {
   const [domain, setDomain] = useState("");
   const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     console.log(domain);
   };
 
   return (
-    <Box>
+    <Box as={"main"} p={5}>
       <Heading>ASM Tool</Heading>
-      実行ボタン
-      <form onSubmit={handleSubmit}>
-        <FormControl label="対象ドメイン">
-          <Input
-            placeholder="domain"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-          />
-        </FormControl>
-        <Button type="submit" colorScheme="purple" variant="outline">
-          実行
-        </Button>
-      </form>
+      <Box as={"div"} p={5}>
+        <form onSubmit={handleSubmit}>
+          <FormControl label="対象ドメイン" py={5}>
+            <Input
+              placeholder="domain"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              width={"70%"}
+            />
+          </FormControl>
+
+          <Box display={"flex"} justifyContent={"end"}>
+            <Button type="submit" colorScheme="purple" variant="outline">
+              実行
+            </Button>
+          </Box>
+        </form>
+      </Box>
     </Box>
   );
 }
