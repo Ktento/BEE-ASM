@@ -55,6 +55,9 @@ ReportMinCVSS3 = 7.0
 # BOM付きUTF-8にしたい場合は"utf-8-sig"を指定する
 ReportCSVEncoding = "utf-8"
 
+# Geminiによる分析を使用するか
+EnableGemini = True
+
 # レポートに使うGemini Pro APIのキー
 ReportAPIKey = "AIzaSyABkHvu23Sig59gKjRgd_t8PeJmt30uuQ4"
 
