@@ -58,7 +58,6 @@ def get_cve_ids(context, cve_data_array, output, cve_data):
 def get_info_by_cve_id(cve_id: str, cve_entry):
 	max_retries = 5
 	retry_delay = 5
-
 	try:
 		url = f"https://services.nvd.nist.gov/rest/json/cves/2.0?cveId={cve_id}"
 		response = get(url=url)
@@ -76,15 +75,15 @@ def get_info_by_cve_id(cve_id: str, cve_entry):
 			if en_descriptions:
 				description = en_descriptions[0]  # 最初の説明文を使用
 				cve_entry["Description (English)"] = description
-				#Gemini
+				#Gemini			
 				if Config.EnableGemini:
 					review = review_description(description)
-				else:
-					review="Gemini is not permitted"
-				if review:
+					if review:
 						cve_entry["Gemini Review"] = review
-						return en_descriptions
-
+				else:
+					cve_entry["Gemini Review"]="Gemini is not permitted"
+				
+				return en_descriptions
 		# print(f"No English description found for {cve_id}")
 		return None
 	except Exception as e:
@@ -129,7 +128,7 @@ def create_csv(cve_data, filename):
 		return False
 
 	try:
-		with open(filename, mode='w', newline='', encoding='utf-8') as csvfile:
+		with open(filename, mode='w', newline='', encoding='utf-8-sig') as csvfile:
 			fieldnames = ["CVE-ID", "Title", "Description (English)", "Gemini Review"]
 			writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
