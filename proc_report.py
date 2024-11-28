@@ -31,7 +31,6 @@ def get_cve_ids(context, cve_data_array, output, cve_data):
 		cnt += 1
 		cve_entry = {
 			"CVE-ID": cve["id"],
-			"Title": cve["summary"],
 			"Description (English)": "",
 			"Gemini Review": ""
 		}
@@ -41,8 +40,6 @@ def get_cve_ids(context, cve_data_array, output, cve_data):
 			output.append(f"<h3>CVSS score: {cve['cvss']}</h3>")
 		if cve["cvss3"] >= 0.0:
 			output.append(f"<h3>CVSS3 score: {cve['cvss3']}</h3>")
-
-		output.append(f"<h3>Title: {cve['summary']}</h3>")
 
 		descriptions = get_info_by_cve_id(cve["id"], cve_entry)
 		count += 1
@@ -75,7 +72,7 @@ def get_info_by_cve_id(cve_id: str, cve_entry):
 			if en_descriptions:
 				description = en_descriptions[0]  # 最初の説明文を使用
 				cve_entry["Description (English)"] = description
-				#Gemini			
+				#Gemini
 				if Config.EnableGemini:
 					review = review_description(description)
 					if review:
@@ -129,7 +126,7 @@ def create_csv(cve_data, filename):
 
 	try:
 		with open(filename, mode='w', newline='', encoding='utf-8-sig') as csvfile:
-			fieldnames = ["CVE-ID", "Title", "Description (English)", "Gemini Review"]
+			fieldnames = ["CVE-ID","Description (English)", "Gemini Review"]
 			writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
 			# ヘッダーを書き込む
