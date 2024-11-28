@@ -4,6 +4,7 @@ from context import Context
 from log import Level
 import urllib.request
 import json
+from datetime import datetime
 
 # メモ: jq '. | sort_by(.cvss3) | map({(.id|tostring): (.cvss3)}) | add' FILE.json
 #       jq '[. | sort_by(.cvss3)[] | {"\(.id)": (.cvss3)}] | add' FILE.json

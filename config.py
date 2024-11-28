@@ -34,9 +34,9 @@ EnableReporting = True
 #ReportEmails = ["admin@example.com"]
 ReportEmails = ["san-j22025@sist.ac.jp"]
 
-# 何個までCVE情報をレポートするか
+# 何個までのCVE情報をGeminiで処理するか
 # 多く指定すると処理に時間が掛かるようになる
-# なおCVSS3スコアの高い方から優先的にレポートするようになっている
+# なおCVSS3スコアの高い方から優先的に処理するようになっている
 ReportLimit = 2
 
 # あるプラットフォームのバージョンが不明な場合、
@@ -49,6 +49,11 @@ ReportSince = datetime.now() - timedelta(days=365 * 5)
 # なおCVSS3スコアが不明なものは-1.0として扱われる
 # そのためすべてレポートする場合は-1.0以下に設定されたい
 ReportMinCVSS3 = 7.0
+
+# レポートのCSVファイルの文字エンコーディング
+# これがそのままopen()に渡される
+# BOM付きUTF-8にしたい場合は"utf-8-sig"を指定する
+ReportCSVEncoding = "utf-8"
 
 # レポートに使うGemini Pro APIのキー
 ReportAPIKey = "AIzaSyABkHvu23Sig59gKjRgd_t8PeJmt30uuQ4"
