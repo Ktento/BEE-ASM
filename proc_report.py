@@ -76,10 +76,14 @@ def get_info_by_cve_id(cve_id: str, cve_entry):
 			if en_descriptions:
 				description = en_descriptions[0]  # 最初の説明文を使用
 				cve_entry["Description (English)"] = description
-				review = review_description(description)
+				#Gemini
+				if Config.EnableGemini:
+					review = review_description(description)
+				else:
+					review="Gemini is not permitted"
 				if review:
-					cve_entry["Gemini Review"] = review
-				return en_descriptions
+						cve_entry["Gemini Review"] = review
+						return en_descriptions
 
 		# print(f"No English description found for {cve_id}")
 		return None

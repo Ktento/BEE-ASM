@@ -38,6 +38,8 @@ ReportEmails = ["san-j22025@sist.ac.jp"]
 # なおCVSS3スコアの高い方から優先的にレポートするようになっている
 ReportLimit = 2
 
+# Geminiによる分析を使用するか
+EnableGemini = False
 # レポートに使うGemini Pro APIのキー
 ReportAPIKey = "AIzaSyABkHvu23Sig59gKjRgd_t8PeJmt30uuQ4"
 
