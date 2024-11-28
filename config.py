@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from log import Level
+from datetime import datetime, timedelta
 
 ##### 全体 #####
 
@@ -37,6 +38,17 @@ ReportEmails = ["san-j22025@sist.ac.jp"]
 # 多く指定すると処理に時間が掛かるようになる
 # なおCVSS3スコアの高い方から優先的にレポートするようになっている
 ReportLimit = 2
+
+# あるプラットフォームのバージョンが不明な場合、
+# それの内いつ以降公開されたCVEをレポートするか
+# 過去約5年分:
+ReportSince = datetime.now() - timedelta(days=365 * 5)
+
+# レポートする最小のCVSS3スコア(しきい値)
+# この値未満のCVEはレポートしない
+# なおCVSS3スコアが不明なものは-1.0として扱われる
+# そのためすべてレポートする場合は-1.0以下に設定されたい
+ReportMinCVSS3 = 7.0
 
 # レポートに使うGemini Pro APIのキー
 ReportAPIKey = "AIzaSyABkHvu23Sig59gKjRgd_t8PeJmt30uuQ4"

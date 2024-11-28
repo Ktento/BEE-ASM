@@ -75,6 +75,13 @@ if __name__ == "__main__":
 	# Nmap
 	# 後の報告のためにCVEデータを格納する
 	cveData = []
+	# ホストとそのホストに対応するCPE文字列の組
+	hostCpes = []
+	# [
+	#   ("ホスト0", {"CPE文字列0", "CPE文字列1", ...}),
+	#   ("ホスト1", {"CPE文字列0", "CPE文字列1", ...}), ...
+	# ]
+	# のような形式になる
 	if Config.EnableNmap:
 		try:
 			# スキャン
@@ -85,30 +92,44 @@ if __name__ == "__main__":
 				# NmapはCPE文字列まで返してくれるのでそれを使う
 				cpes = set()
 
-				# python-nmap経由でCPE文字列を列挙する
+				# python-nmap経由でCPE文字列を列挙する場合以下のようにすれば良い:
 				# for host in nm.all_hosts():
 				# 	for proto in nm[host].all_protocols():
 				# 		for port in nm[host][proto].keys():
 				# 			if "cpe" in nm[host][proto][port]:
 				# 				cpes.add(nm[host][proto][port]["cpe"])
 				# ただし、あるサービスに2つ以上のCPE文字列があると1つのみ返される
-				# そのため、代わりにNmapのXML出力からCPE文字列を取得する
+				# そのため、ここでは代わりにNmapのXML出力からCPE文字列を取得することにする
 
-				# Nmap XMLから列挙する
+				# Nmapが出力したXMLドキュメントから列挙する
 				elm = ET.fromstring(nm.get_nmap_last_output())
 				xmlCpes = elm.findall("./host/ports/port/service/cpe")
 				for i in xmlCpes:
 					cpes.add(i.text)
 
+				for host in elm.findall("./host"):
+					# ユーザー入力のホスト名があればそれを使う
+					hostnameUser = host.find("./hostnames/hostname[@type='user']")
+					if hostnameUser is not None: hostnameUser = hostnameUser.attrib["name"]
+					# 無ければIPアドレスを使う
+					hostIp = host.find("./address")
+					if hostIp is not None: hostIp = hostIp.attrib["addr"]
+					# それも無ければ不明として扱う
+					theName = hostnameUser if hostnameUser is not None else hostIp if hostIp is not None else "<hostname/address unknown>"
+					xmlCpes = host.findall("./ports/port/service/cpe")
+					# まとめる
+					s = set(map(lambda i:i.text, xmlCpes))
+					s.discard("")
+					hostCpes.append((theName, s))
+
 				# 空の文字列が入る場合があるので取り除く
 				cpes.discard("")
-				# 少なくとも1つCPEがあれば検索する
-				if len(cpes) > 0:
-					try:
-						cveData = CVE.ProcCVE(ctx, cpes)
-						Log(Level.INFO, f"[CVE] Found {len(cveData)} CVE(s)")
-					except Exception as e:
-						Log(Level.ERROR, f"[CVE] Searching CVE failed: {e}")
+				cveData = []
+				try:
+					cveData = CVE.ProcCVE(ctx, cpes)
+					Log(Level.INFO, f"[CVE] Found {len(cveData)} CVE(s)")
+				except Exception as e:
+					Log(Level.ERROR, f"[CVE] Searching CVE failed: {e}")
 		except Exception as e:
 			Log(Level.ERROR, f"[Nmap] Nmap failed: {e}")
 
@@ -143,7 +164,7 @@ if __name__ == "__main__":
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
 			cveData.reverse()
 			# レポートする
-			Report.makereport(ctx, cveData)
+			Report.makereport(ctx, cveData, hostCpes)
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
 
