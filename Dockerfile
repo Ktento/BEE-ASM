@@ -36,5 +36,5 @@ COPY . .
 EXPOSE 8000
 
 # コンテナ起動時のデフォルトコマンド
-CMD ["python", "__main__.py"]docker build -t my-asm-tool .
+CMD ["python", "__main__.py"]
 

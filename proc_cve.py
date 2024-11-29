@@ -4,6 +4,7 @@ from context import Context
 from log import Level
 import urllib.request
 import json
+from datetime import datetime
 
 # メモ: jq '. | sort_by(.cvss3) | map({(.id|tostring): (.cvss3)}) | add' FILE.json
 #       jq '[. | sort_by(.cvss3)[] | {"\(.id)": (.cvss3)}] | add' FILE.json
@@ -50,8 +51,16 @@ def ProcCVE(context: Context, cpes: set) -> list:
 			for v in js:
 				if "id" not in v: continue
 
+				# 発行日時。デフォルトで1970-01-01 00:00:00 (Unixエポック)
+				pubdate = datetime(1970, 1, 1, 0, 0, 0)
+				if "Published" in v:
+					try:
+						pubdate = datetime.fromisoformat(v["Published"])
+					except: pass
 				result.append({
-					"id": v["id"],
+					"cpe": cpe,  # 入力のCPE文字列。どの入力に対する結果であるかを区別できるようにするため
+					"id": v["id"],  # CVE ID ("CVE-YYYY-NNNN+")
+					"published": pubdate,  # 発行日時
 					"cvss": v["cvss"] if "cvss" in v else -1.0,
 					"cvss3": v["cvss3"] if "cvss3" in v else -1.0,
 					"summary": v["summary"] if "summary" in v else None
