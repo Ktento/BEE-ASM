@@ -158,7 +158,10 @@ def makereport(context: Context, cve_data_array, host_cpes):
 
 	# HTML文書作成
 	html = mkhtml(context, cve_data_array, host_cpes)
-	with open("/tmp/p.html", "wb") as f: f.write(html)
+	try:
+		with open(f"{context.savedir}/cve_report.html", "wb") as f: f.write(html)
+	except Exception as e:
+		context.logger.Log(Level.ERROR, f"[Report] Failed to write the HTML report to file: {e}")
 
 	# 全ホストのCVEを格納するCSVのファイル名
 	csv_filename_all = f"{context.savedir}/cve_report_all.csv"
