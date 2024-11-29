@@ -279,7 +279,7 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 		fgColor = "#ffffff" if score >= 8.0 else "#000000"
 
 		# CSS
-		cvss3.attrib["style"] = f"background-color: #{bgColor}; color: {fgColor};"
+		cvss3.attrib["style"] = f"background-color: #{bgColor}; color: {fgColor}; text-align: right;"
 		cveDesc.text = cve["summary"] if cve["summary"] != None else ""
 
 		if cve["cpe"] in dic:
