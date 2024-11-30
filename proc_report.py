@@ -149,12 +149,15 @@ def makereport(context: Context, cve_data_array, host_cpes):
 	# 諸条件に一致するCVE情報のみ抽出する
 	cve_data_array = filtering_cves(cve_data_array)
 	for c in cve_data_array:
-		c["gemini"] = "Gemini is not permitted"
+		c["gemini"] = "(Not permitted)"
 
 	# Gemini有効時、抽出したものをレビューしてもらう
 	if Config.EnableGemini:
 		for c in cve_data_array[:Config.ReportLimit]:
-			c["gemini"] = review_description(c["summary"])
+			try:
+				c["gemini"] = review_description(c["summary"])
+			except Exception as e:
+				c["gemini"] = "(Failed)"
 
 	# HTML文書作成
 	html = mkhtml(context, cve_data_array, host_cpes)
