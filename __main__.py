@@ -101,10 +101,21 @@ if __name__ == "__main__":
 				# ただし、あるサービスに2つ以上のCPE文字列があると1つのみ返される
 				# そのため、ここでは代わりにNmapのXML出力からCPE文字列を取得することにする
 
+				# NmapのCPE文字列を修正
+				def fixcpe(input):
+					try:
+						fixes = {
+							"cpe:/a:microsoft:iis:10.0": "cpe:/a:microsoft:internet_information_services:10.0",
+						}
+						return fixes[input] if input in fixes else input
+					except Exception:
+						return input
+
 				# Nmapが出力したXMLドキュメントから列挙する
 				elm = ET.fromstring(nm.get_nmap_last_output())
 				xmlCpes = elm.findall("./host/ports/port/service/cpe")
 				for i in xmlCpes:
+					i.text = fixcpe(i.text)
 					cpes.add(i.text)
 
 				for host in elm.findall("./host"):
