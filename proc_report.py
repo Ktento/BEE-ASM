@@ -52,13 +52,13 @@ def review_description(description):
 	# 	print(f"failed. http status code: {response.status_code}")
 	# 	print("preview:", response.text)
 
-def create_csvs(cveData, hostCpes, fAll, fPer):
+def create_csvs(cveData, hostCpes, hostCpePorts, fAll, fPer):
 	# 全ホストのCVE情報
 	wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 	wa.writeheader()
 
 	# ホストごとのCVE情報
-	wp = csv.DictWriter(fPer, ["Host", "CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
+	wp = csv.DictWriter(fPer, ["Host", "Ports", "CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 	wp.writeheader()
 
 	dic = dict()
@@ -84,6 +84,11 @@ def create_csvs(cveData, hostCpes, fAll, fPer):
 			if cpe not in dic: continue
 			for i in dic[cpe]:
 				i["Host"] = hostCpe[0]
+				i["Ports"] = "(Unknown)"
+				for hostCpePort in hostCpePorts:
+					if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
+						i["Ports"] = str.join(", ", hostCpePort["ports"])
+						break
 				wp.writerow(i)
 
 def send_email(ctx, body, attachments):
@@ -144,7 +149,7 @@ def send_email(ctx, body, attachments):
 	finally:
 		if server != None: server.quit()
 
-def makereport(context: Context, cve_data_array, host_cpes):
+def makereport(context: Context, cve_data_array, host_cpes, host_cpe_ports):
 	context.logger.Log(Level.INFO, f"[Report] Getting CVE information...")
 
 	# 諸条件に一致するCVE情報のみ抽出する
@@ -165,7 +170,7 @@ def makereport(context: Context, cve_data_array, host_cpes):
 	if len(filtered["unknownVersionFound"]) > 0:
 		ss = set(filtered["unknownVersionFound"])
 		since = Config.ReportSince.strftime("%Y年%m月%d日")
-		extra = f"<p>以下のサービスのバージョンを検出できませんでした。そのサービスのCVE情報は代替として{since}以降に発行されたものを出力します。</p><ul>"
+		extra = f"<p>以下のプラットフォームのバージョンを検出できませんでした。それらのCVE情報は代替として{since}以降に発行されたものを出力しています。</p><ul>"
 		for sss in ss:
 			extra += "<li>"
 			splitted = sss.split(":")
@@ -179,7 +184,7 @@ def makereport(context: Context, cve_data_array, host_cpes):
 		extra += "</ul>"
 
 	# HTML文書作成
-	html = mkhtml(context, cve_data_array, host_cpes, extra)
+	html = mkhtml(context, cve_data_array, host_cpes, host_cpe_ports, extra)
 	try:
 		with open(f"{context.savedir}/cve_report.html", "wb") as f: f.write(html)
 	except Exception as e:
@@ -193,7 +198,7 @@ def makereport(context: Context, cve_data_array, host_cpes):
 	# CSVファイルの作成
 	with open(csv_filename_all, mode='w', newline='', encoding=Config.ReportCSVEncoding) as csvfile_all, \
 		open(csv_filename_per, mode='w', newline='', encoding=Config.ReportCSVEncoding) as csvfile_per:
-		create_csvs(cve_data_array, host_cpes, csvfile_all, csvfile_per)
+		create_csvs(cve_data_array, host_cpes, host_cpe_ports, csvfile_all, csvfile_per)
 
 	# CSVを添付してEメール送信
 	context.logger.Log(Level.INFO, f"[Report] Sending mail...")
@@ -231,7 +236,7 @@ def filtering_cves(cveData):
 		"unknownVersionFound": unknownVerFound
 	}
 
-def mkhtml(ctx: Context, cveData, hostCpes, extra) -> bytes:
+def mkhtml(ctx: Context, cveData, hostCpes, hostCpePorts, extra) -> bytes:
 	baseHtml = ET.fromstring(f"""\
 <html>
 	<head>
@@ -262,6 +267,7 @@ def mkhtml(ctx: Context, cveData, hostCpes, extra) -> bytes:
 			<thead>
 				<tr>
 					<th>ホスト</th>
+					<th>ポート</th>
 					<th>CPE文字列</th>
 					<th>CVE ID</th>
 					<th>CVSS3</th>
@@ -337,12 +343,20 @@ def mkhtml(ctx: Context, cveData, hostCpes, extra) -> bytes:
 			for i in dic[cpe]:
 				row = ET.Element("tr")
 				host = ET.Element("td")
+				ports = ET.Element("td")
 				cpee = ET.Element("td")
 
 				host.text = hostCpe[0]
 				cpee.text = cpe
 
+				ports.text = "(Unknown)"
+				for hostCpePort in hostCpePorts:
+					if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
+						ports.text = str.join(", ", hostCpePort["ports"])
+						break
+
 				row.append(host)
+				row.append(ports)
 				row.append(cpee)
 				for j in i:
 					row.append(j)
