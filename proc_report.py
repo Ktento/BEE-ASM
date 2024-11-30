@@ -148,7 +148,8 @@ def makereport(context: Context, cve_data_array, host_cpes):
 	context.logger.Log(Level.INFO, f"[Report] Getting CVE information...")
 
 	# 諸条件に一致するCVE情報のみ抽出する
-	cve_data_array = filtering_cves(cve_data_array)
+	filtered = filtering_cves(cve_data_array)
+	cve_data_array = filtered["cveData"]
 	for c in cve_data_array:
 		c["gemini"] = "(Not permitted)"
 
@@ -160,8 +161,25 @@ def makereport(context: Context, cve_data_array, host_cpes):
 			except Exception as e:
 				c["gemini"] = "(Failed)"
 
+	extra = ""
+	if len(filtered["unknownVersionFound"]) > 0:
+		ss = set(filtered["unknownVersionFound"])
+		since = Config.ReportSince.strftime("%Y年%m月%d日")
+		extra = f"<p>以下のサービスのバージョンを検出できませんでした。そのサービスのCVE情報は代替として{since}以降に発行されたものを出力します。</p><ul>"
+		for sss in ss:
+			extra += "<li>"
+			splitted = sss.split(":")
+			if len(splitted) > 3:
+				extra += f"{splitted[2]} {splitted[3]}"
+			elif len(splitted) > 2:
+				extra += f"{splitted[2]}"
+			else:
+				extra += f"{sss}"
+			extra += "</li>"
+		extra += "</ul>"
+
 	# HTML文書作成
-	html = mkhtml(context, cve_data_array, host_cpes)
+	html = mkhtml(context, cve_data_array, host_cpes, extra)
 	try:
 		with open(f"{context.savedir}/cve_report.html", "wb") as f: f.write(html)
 	except Exception as e:
@@ -193,23 +211,28 @@ def makereport(context: Context, cve_data_array, host_cpes):
 # CVSS3スコアがしきい値以上でかつ(CPEのバージョンが判っている、もしくはCVE発行日時がしきい値以降である)
 # 場合のCVE情報を抽出する
 def filtering_cves(cveData):
-	def ok(i):
+	unknownVerFound = []
+	def ok(i, unknownVerFound):
 		# CVEが設定された日時以降に発行されていた場合はTrue
 		if i["published"] >= Config.ReportSince: return True
 
 		# CPE内にバージョンが含まれていない場合はFalse
 		splitted = i["cpe"].split(":")
-		if len(splitted) < 5: return False
-		if splitted[4] == "" or splitted[4] == "*": return False
+		if len(splitted) < 5 or splitted[4] == "" or splitted[4] == "*":
+			unknownVerFound.append(i["cpe"])
+			return False
 
 		# 含まれている場合はTrue
 		return True
 
-	return [i for i in cveData
-		if i["cvss3"] >= Config.ReportMinCVSS3 and ok(i)]
+	return {
+		"cveData": [i for i in cveData
+			if i["cvss3"] >= Config.ReportMinCVSS3 and ok(i, unknownVerFound)],
+		"unknownVersionFound": unknownVerFound
+	}
 
-def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
-	baseHtml = ET.fromstring("""\
+def mkhtml(ctx: Context, cveData, hostCpes, extra) -> bytes:
+	baseHtml = ET.fromstring(f"""\
 <html>
 	<head>
 		<meta charset="UTF-8" />
@@ -218,6 +241,7 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 	</head>
 	<body>
 		<h1>ASM レポート</h1>
+{extra}
 		<h2>全ホスト</h2>
 		<table border="1">
 			<thead>
