@@ -54,11 +54,11 @@ def review_description(description):
 
 def create_csvs(cveData, hostCpes, fAll, fPer):
 	# 全ホストのCVE情報
-	wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Description", "Gemini"])
+	wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 	wa.writeheader()
 
 	# ホストごとのCVE情報
-	wp = csv.DictWriter(fPer, ["Host", "CPE", "CVEID", "CVSS3", "CVSS", "Description", "Gemini"])
+	wp = csv.DictWriter(fPer, ["Host", "CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 	wp.writeheader()
 
 	dic = dict()
@@ -68,6 +68,7 @@ def create_csvs(cveData, hostCpes, fAll, fPer):
 			"CVEID": cve["id"],
 			"CVSS3": str.format("{:.1f}", cve["cvss3"]),
 			"CVSS": str.format("{:.1f}", cve["cvss"]),
+			"Published":  cve["published_str"],
 			"Description":  cve["summary"],
 			"Gemini": cve["gemini"],
 		}
@@ -224,6 +225,7 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 					<th>CPE文字列</th>
 					<th>CVE ID</th>
 					<th>CVSS3</th>
+					<th>発行日</th>
 					<th>CVEの説明</th>
 					<th>Gemini</th>
 				</tr>
@@ -239,6 +241,7 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 					<th>CPE文字列</th>
 					<th>CVE ID</th>
 					<th>CVSS3</th>
+					<th>発行日</th>
 					<th>CVEの説明</th>
 					<th>Gemini</th>
 				</tr>
@@ -259,11 +262,14 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 		cpe = ET.Element("td")
 		cveId = ET.Element("td")
 		cvss3 = ET.Element("td")
+		published = ET.Element("td")
 		cveDesc = ET.Element("td")
 		extra = ET.Element("td")
 
 		cpe.text = cve["cpe"]
 		cveId.text = cve["id"]
+		cveDesc.text = cve["summary"] if cve["summary"] != None else ""
+		published.text = cve["published_str"]
 		extra.text = cve["gemini"]
 
 		score = cve["cvss3"]
@@ -286,16 +292,17 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 
 		# CSS
 		cvss3.attrib["style"] = f"background-color: #{bgColor}; color: {fgColor}; text-align: right;"
-		cveDesc.text = cve["summary"] if cve["summary"] != None else ""
 
+		t = (cveId, cvss3, cveDesc, published, extra)
 		if cve["cpe"] in dic:
-			dic[cve["cpe"]].append((cveId, cvss3, cveDesc, extra))
+			dic[cve["cpe"]].append(t)
 		else:
-			dic[cve["cpe"]] = [(cveId, cvss3, cveDesc, extra)]
+			dic[cve["cpe"]] = [t]
 
 		row.append(cpe)
 		row.append(cveId)
 		row.append(cvss3)
+		row.append(published)
 		row.append(cveDesc)
 		row.append(extra)
 		allhosts.append(row)
