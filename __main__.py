@@ -73,15 +73,27 @@ if __name__ == "__main__":
 	Log(Level.INFO, f"New target hosts: {ctx.hosts}")
 
 	# Nmap
+
 	# 後の報告のためにCVEデータを格納する
 	cveData = []
+
 	# ホストとそのホストに対応するCPE文字列の組
-	hostCpes = []
 	# [
 	#   ("ホスト0", {"CPE文字列0", "CPE文字列1", ...}),
 	#   ("ホスト1", {"CPE文字列0", "CPE文字列1", ...}), ...
 	# ]
 	# のような形式になる
+	hostCpes = []
+
+	# ホストとCPE文字列に対応するプロコトル名とポート番号
+	# 一つのサービスに複数のポートが割り当てられていることもあるためこうする
+	# [
+	#   {"host": "ホスト0", "cpe": "CPE文字列0", "ports": ["プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...]},
+	#   {"host": "ホスト1", "cpe": "CPE文字列1", "ports": ["プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...]}, ...
+	# ]
+	# のような形式になる
+	hostCpePorts = []
+
 	if Config.EnableNmap:
 		try:
 			# スキャン
@@ -101,10 +113,21 @@ if __name__ == "__main__":
 				# ただし、あるサービスに2つ以上のCPE文字列があると1つのみ返される
 				# そのため、ここでは代わりにNmapのXML出力からCPE文字列を取得することにする
 
+				# NmapのCPE文字列を修正
+				def fixcpe(input):
+					try:
+						fixes = {
+							"cpe:/a:microsoft:iis:10.0": "cpe:/a:microsoft:internet_information_services:10.0",
+						}
+						return fixes[input] if input in fixes else input
+					except Exception:
+						return input
+
 				# Nmapが出力したXMLドキュメントから列挙する
 				elm = ET.fromstring(nm.get_nmap_last_output())
 				xmlCpes = elm.findall("./host/ports/port/service/cpe")
 				for i in xmlCpes:
+					i.text = fixcpe(i.text)
 					cpes.add(i.text)
 
 				for host in elm.findall("./host"):
@@ -116,11 +139,26 @@ if __name__ == "__main__":
 					if hostIp is not None: hostIp = hostIp.attrib["addr"]
 					# それも無ければ不明として扱う
 					theName = hostnameUser if hostnameUser is not None else hostIp if hostIp is not None else "<hostname/address unknown>"
-					xmlCpes = host.findall("./ports/port/service/cpe")
-					# まとめる
-					s = set(map(lambda i:i.text, xmlCpes))
-					s.discard("")
-					hostCpes.append((theName, s))
+
+					xmlPorts = host.findall("./ports/port")
+					for xmlPort in xmlPorts:
+						p = f'{xmlPort.attrib["protocol"]}/{xmlPort.attrib["portid"]}'
+
+						xmlCpes = xmlPort.findall("./service/cpe")
+						# まとめる
+						s = set(map(lambda i:i.text, xmlCpes))
+						s.discard("")
+						hostCpes.append((theName, s))
+
+						for ss in s:
+							found = False
+							for hostCpePort in hostCpePorts:
+								if hostCpePort["host"] == theName and hostCpePort["cpe"] == ss:
+									hostCpePort["ports"].append(p)
+									found = True
+									break
+							if not found:
+								hostCpePorts.append({"host": theName, "cpe": ss, "ports": [p]})
 
 				# 空の文字列が入る場合があるので取り除く
 				cpes.discard("")
@@ -164,7 +202,7 @@ if __name__ == "__main__":
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
 			cveData.reverse()
 			# レポートする
-			Report.makereport(ctx, cveData, hostCpes)
+			Report.makereport(ctx, cveData, hostCpes, hostCpePorts)
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
 
