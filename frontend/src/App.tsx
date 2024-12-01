@@ -3,11 +3,22 @@ import { useState } from "react";
 
 function App() {
   const [domain, setDomain] = useState("");
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+  const [isSuccess, setIsSuccess] = useState(false);
+  const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    try {
+      const res = await fetch("http://localhost:8000/run-asm");
+      console.log(res);
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Error calling backend:", error);
+    }
     console.log(domain);
   };
+
+  if (isSuccess) {
+    return <Success />;
+  }
 
   return (
     <Box as={"main"} p={5}>
@@ -29,6 +40,22 @@ function App() {
             </Button>
           </Box>
         </form>
+      </Box>
+    </Box>
+  );
+}
+
+function Success() {
+  return (
+    <Box as={"main"} p={5}>
+      <Heading>送信が成功しました！</Heading>
+      <Box p={5}>
+        <Button
+          colorScheme="purple"
+          onClick={() => (window.location.href = "/")}
+        >
+          ホームに戻る
+        </Button>
       </Box>
     </Box>
   );
