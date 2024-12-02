@@ -44,19 +44,6 @@ if __name__ == "__main__":
 	if not Config.EnableNmap and Config.SearchCVE:
 		Log(Level.WARN, "CVE search feature disabled due to Nmap is disabled in config.")
 
-	# 脆弱性診断ツール(VAT)を有効にする場合、決意を問う
-	# というのもASMツールの範疇を超えているため
-	ensured = Config.RepeatAfterMeIAmSureToRunTheVAT == "IAmSureToRunTheVAT"
-	Log(Level.INFO, "Execute the vulnerability assessment tool (VAT): " + ("Enabled" if Config.EnableVAT and ensured else ("Not ensured" if Config.EnableVAT and not ensured else "Disabled")))
-	if Config.EnableVAT and not ensured:
-		Log(Level.FATAL, "To enable VAT, you need to be sure what you are going to do.")
-		Log(Level.INFO, 'If you REALLY want to enable VAT, set the config "RepeatAfterMeIAmSureToRunTheVAT" to "IAmSureToRunTheVAT". Otherwise, set "EnableVAT" to False.')
-		Log(Level.INFO, 'Exiting.')
-		# 決意が足りなかったら終了
-		# 早期に終了することで早めに修正できるようにしておく
-		end()
-		sys.exit(1)
-
 	# 検査対象、および検査対象外のホストもログに残す
 	Log(Level.INFO, "Target hosts: " + str.join(", ", Config.TargetHosts))
 	Log(Level.INFO, "Excluded hosts (subfinder, Nmap): " + str.join(", ", Config.ExcludeHosts))
@@ -178,22 +165,6 @@ if __name__ == "__main__":
 			DDG.ProcDDG(ctx)
 		except Exception as e:
 			Log(Level.ERROR, f"[DDG] Searching failed: {e}")
-
-	# VATの起動
-	if Config.EnableVAT and ensured:
-		try:
-			Log(Level.INFO, "[VAT] Launching the VAT...")
-			# 起動
-			vatResult = subprocess.run([Config.VATPath], capture_output=True)
-			Log(Level.INFO, "[VAT] VAT finished.")
-			Log(Level.INFO, f"[VAT] VAT stdout:\n{vatResult.stdout.decode('utf-8', 'replace')}")
-			Log(Level.INFO, f"[VAT] VAT stderr:\n{vatResult.stderr.decode('utf-8', 'replace')}")
-			Log(Level.INFO, f"[VAT] VAT return code: {vatResult.returncode}")
-			with open(f"{resultdir}/vat_stdout.txt", "wb") as o, open(f"{resultdir}/vat_stderr.txt", "wb") as e:
-				o.write(vatResult.stdout)
-				e.write(vatResult.stderr)
-		except Exception as e:
-			Log(Level.ERROR, f"[VAT] VAT failed: {e}")
 
 	# Eメールでのレポート
 	if Config.EnableReporting:

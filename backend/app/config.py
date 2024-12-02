@@ -100,16 +100,3 @@ SearchCVE = True
 
 # CIRCL CVE Search APIのプロトコルとホスト名を含むベースURL
 CVEAPIBase = "https://cvepremium.circl.lu/api"
-
-##### 脆弱性診断 #####
-# VAT ... Vulnerability Assessment Tool
-
-# 脆弱性診断を使用するか
-EnableVAT = True
-
-# 脆弱性診断を本当に実行するかの確認
-# 実行する場合"IAmSureToRunTheVAT"を設定
-RepeatAfterMeIAmSureToRunTheVAT = "IAmSureToRunTheVAT"
-
-# VATの実行可能ファイルへのパス
-VATPath = "./vat"
