@@ -33,6 +33,8 @@ function Config() {
   );
   const [webMaxResults, setWebMaxResults] = useState(50);
   const [webBackend, setWebBackend] = useState("html");
+  const [enableSearchCVE, setEnableSearchCVE] = useState(false);
+  const [enableVAT, setEnableVAT] = useState(false);
 
   const handleRegionChange = (value: string) => {
     setSelectedRegion(value as SearchRegion);
@@ -207,6 +209,30 @@ function Config() {
                     </FormControl>
                   </Box>
                 )}
+                <AccordionItem label="CVE検索設定">
+                  <ConfigCard
+                    content={
+                      <Checkbox
+                        isChecked={enableSearchCVE}
+                        onChange={(e) => setEnableSearchCVE(e.target.checked)}
+                      >
+                        CVE検索機能を使用しますか?
+                      </Checkbox>
+                    }
+                  />
+                </AccordionItem>
+                <AccordionItem label="脆弱性診断設定">
+                  <ConfigCard
+                    content={
+                      <Checkbox
+                        isChecked={enableVAT}
+                        onChange={(e) => setEnableVAT(e.target.checked)}
+                      >
+                        脆弱性診断を使用しますか?
+                      </Checkbox>
+                    }
+                  />
+                </AccordionItem>
               </>
             }
           />
