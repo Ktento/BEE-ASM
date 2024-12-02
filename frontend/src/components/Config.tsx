@@ -22,6 +22,8 @@ function Config() {
   const [geminiAPIKey, setGeminiAPIKey] = useState<string | undefined>(
     undefined
   );
+  const [enableNmap, setEnableNmap] = useState(false);
+  const [nmapArgs, setNmapArgs] = useState<string | undefined>(undefined);
 
   return (
     <>
@@ -99,13 +101,40 @@ function Config() {
                   Geminiによる分析を使用しますか?
                 </Checkbox>
                 {enableGemini && (
-                  <Box>
+                  <Box px={8}>
                     <FormControl label="GeminiのAPIキー">
                       <Input
                         type="text"
                         placeholder="Gemini API key"
                         value={geminiAPIKey}
                         onChange={(e) => setGeminiAPIKey(e.target.value)}
+                        width={"auto"}
+                      />
+                    </FormControl>
+                  </Box>
+                )}
+              </>
+            }
+          />
+        </AccordionItem>
+        <AccordionItem label="Nmap設定">
+          <ConfigCard
+            content={
+              <>
+                <Checkbox
+                  isChecked={enableNmap}
+                  onChange={(e) => setEnableNmap(e.target.checked)}
+                >
+                  Nmapを使用しますか?
+                </Checkbox>
+                {enableNmap && (
+                  <Box px={8}>
+                    <FormControl label="Nmapの引数">
+                      <Input
+                        type="text"
+                        placeholder="nmap arguments"
+                        value={nmapArgs}
+                        onChange={(e) => setNmapArgs(e.target.value)}
                         width={"auto"}
                       />
                     </FormControl>
