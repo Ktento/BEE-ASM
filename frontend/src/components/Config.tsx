@@ -13,6 +13,7 @@ import {
   RadioGroup,
 } from "@yamada-ui/react";
 import { useState } from "react";
+import { SearchRegion } from "../types/enums/SearchRegion";
 
 function Config() {
   const [enableColor, setEnableColor] = useState(false);
@@ -35,11 +36,6 @@ function Config() {
   const [webBackend, setWebBackend] = useState("html");
   const [enableSearchCVE, setEnableSearchCVE] = useState(false);
   const [enableVAT, setEnableVAT] = useState(false);
-
-  const handleRegionChange = (value: string) => {
-    setSelectedRegion(value as SearchRegion);
-    console.log("Selected Region:", value);
-  };
 
   return (
     <>
@@ -183,7 +179,7 @@ function Config() {
                     </FormControl>
                     <RadioGroup
                       value={selectedRegion}
-                      onChange={handleRegionChange}
+                      onChange={(e) => setSelectedRegion(e as SearchRegion)}
                     >
                       <Radio value={SearchRegion.JP}>日本</Radio>
                     </RadioGroup>
@@ -245,10 +241,6 @@ function Config() {
 interface ConfigCardProps {
   header?: string;
   content: JSX.Element;
-}
-
-enum SearchRegion {
-  JP = "jp-jp",
 }
 
 function ConfigCard(props: ConfigCardProps) {
