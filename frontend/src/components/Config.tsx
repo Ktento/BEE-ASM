@@ -9,6 +9,8 @@ import {
   FormControl,
   Heading,
   Input,
+  Radio,
+  RadioGroup,
 } from "@yamada-ui/react";
 import { useState } from "react";
 
@@ -24,6 +26,18 @@ function Config() {
   );
   const [enableNmap, setEnableNmap] = useState(false);
   const [nmapArgs, setNmapArgs] = useState<string | undefined>(undefined);
+  const [enableWebSearch, setEnableWebSearch] = useState(false);
+  const [webQuery, setWebQuery] = useState<string | undefined>(undefined);
+  const [selectedRegion, setSelectedRegion] = useState<SearchRegion>(
+    SearchRegion.JP
+  );
+  const [webMaxResults, setWebMaxResults] = useState(50);
+  const [webBackend, setWebBackend] = useState("html");
+
+  const handleRegionChange = (value: string) => {
+    setSelectedRegion(value as SearchRegion);
+    console.log("Selected Region:", value);
+  };
 
   return (
     <>
@@ -144,6 +158,59 @@ function Config() {
             }
           />
         </AccordionItem>
+        <AccordionItem label="Web検索設定">
+          <ConfigCard
+            content={
+              <>
+                <Checkbox
+                  isChecked={enableWebSearch}
+                  onChange={(e) => setEnableWebSearch(e.target.checked)}
+                >
+                  Web検索機能を使用しますか?
+                </Checkbox>
+                {enableWebSearch && (
+                  <Box px={8}>
+                    <FormControl label="検索クエリ">
+                      <Input
+                        type="text"
+                        placeholder="search query"
+                        value={webQuery}
+                        onChange={(e) => setWebQuery(e.target.value)}
+                        width={"auto"}
+                      />
+                    </FormControl>
+                    <RadioGroup
+                      value={selectedRegion}
+                      onChange={handleRegionChange}
+                    >
+                      <Radio value={SearchRegion.JP}>日本</Radio>
+                    </RadioGroup>
+                    <FormControl label="検索上限">
+                      <Input
+                        type="number"
+                        placeholder="max results"
+                        value={webMaxResults}
+                        onChange={(e) =>
+                          setWebMaxResults(parseInt(e.target.value))
+                        }
+                        width={"auto"}
+                      />
+                    </FormControl>
+                    <FormControl label="検索バックエンド">
+                      <Input
+                        type="text"
+                        placeholder="web backend"
+                        value={webBackend}
+                        onChange={(e) => setWebBackend(e.target.value)}
+                        width={"auto"}
+                      />
+                    </FormControl>
+                  </Box>
+                )}
+              </>
+            }
+          />
+        </AccordionItem>
       </Accordion>
     </>
   );
@@ -152,6 +219,10 @@ function Config() {
 interface ConfigCardProps {
   header?: string;
   content: JSX.Element;
+}
+
+enum SearchRegion {
+  JP = "jp-jp",
 }
 
 function ConfigCard(props: ConfigCardProps) {
