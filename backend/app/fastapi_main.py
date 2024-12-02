@@ -59,7 +59,7 @@ class ConfigModel(BaseModel):
     SearchCVE: bool
     CVEAPIBase: str
 
-# ダミー進捗状況
+# 進捗状況
 #progress ->subfinder,nmap,cve-search,reportが進む度25進む
 #current_task ->実行中の処理を記録 
 #実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
