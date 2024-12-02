@@ -35,7 +35,7 @@ function Config() {
   const [enableVAT, setEnableVAT] = useState(false);
 
   return (
-    <>
+    <Box py={4}>
       <Accordion multiple={true}>
         <AccordionItem label="全体設定">
           <ConfigCard
@@ -202,36 +202,36 @@ function Config() {
                     </FormControl>
                   </Box>
                 )}
-                <AccordionItem label="CVE検索設定">
-                  <ConfigCard
-                    content={
-                      <Checkbox
-                        isChecked={enableSearchCVE}
-                        onChange={(e) => setEnableSearchCVE(e.target.checked)}
-                      >
-                        CVE検索機能を使用しますか?
-                      </Checkbox>
-                    }
-                  />
-                </AccordionItem>
-                <AccordionItem label="脆弱性診断設定">
-                  <ConfigCard
-                    content={
-                      <Checkbox
-                        isChecked={enableVAT}
-                        onChange={(e) => setEnableVAT(e.target.checked)}
-                      >
-                        脆弱性診断を使用しますか?
-                      </Checkbox>
-                    }
-                  />
-                </AccordionItem>
               </>
             }
           />
         </AccordionItem>
+        <AccordionItem label="CVE検索設定">
+          <ConfigCard
+            content={
+              <Checkbox
+                isChecked={enableSearchCVE}
+                onChange={(e) => setEnableSearchCVE(e.target.checked)}
+              >
+                CVE検索機能を使用しますか?
+              </Checkbox>
+            }
+          />
+        </AccordionItem>
+        <AccordionItem label="脆弱性診断設定">
+          <ConfigCard
+            content={
+              <Checkbox
+                isChecked={enableVAT}
+                onChange={(e) => setEnableVAT(e.target.checked)}
+              >
+                脆弱性診断を使用しますか?
+              </Checkbox>
+            }
+          />
+        </AccordionItem>
       </Accordion>
-    </>
+    </Box>
   );
 }
 
