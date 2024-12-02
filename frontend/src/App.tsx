@@ -1,5 +1,6 @@
 import { Box, Button, FormControl, Heading, Input } from "@yamada-ui/react";
 import { useState } from "react";
+import Config from "./components/Config";
 
 function App() {
   const [domain, setDomain] = useState("");
@@ -33,6 +34,7 @@ function App() {
               width={"70%"}
             />
           </FormControl>
+          <Config />
 
           <Box display={"flex"} justifyContent={"end"}>
             <Button type="submit" colorScheme="purple" variant="outline">
