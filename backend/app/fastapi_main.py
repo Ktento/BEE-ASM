@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from pydantic import BaseModel
 from typing import List
+from fastapi.responses import JSONResponse
 app = FastAPI()
 # CORS ミドルウェアを追加
 app.add_middleware(
@@ -58,8 +59,19 @@ class ConfigModel(BaseModel):
     SearchCVE: bool
     CVEAPIBase: str
 
+# ダミー進捗状況
+#progress ->subfinder,nmap,cve-search,reportが進む度25進む
+#current_task ->実行中の処理を記録 
+#実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
+progress_status = {"progress": 0,"current_task": ""}
+#進捗表示を返すAPI
+@app.get("/progress")
+def get_progress():
+    return JSONResponse(content=progress_status)
+
 @app.get("/run-asm")
 def read_root():
+	global progress_status
 	# 結果出力先の作成
 	# 結果は カレントディレクトリー/result_<整数のUNIX時刻>/
 	# に保存される
@@ -73,7 +85,7 @@ def read_root():
 
 	def end():
 		Log(Level.INFO, f"===== APPLICATION FINISHED (PID: {os.getpid()}) =====")
-
+	progress_status["progress"] = 0
 	# アプリケーションが起動したこと、および自身のPID そしてログ出力先をログに残す
 	Log(Level.INFO, f"===== APPLICATION STARTED (PID: {os.getpid()}) =====")
 	Log(Level.INFO, f"Current directory: {os.getcwd()}")
@@ -100,8 +112,10 @@ def read_root():
 	if Config.EnableSubfinder:
 		try:
 			# スキャン
+			progress_status["current_task"]="subfinder"
 			add_domains = Subfinder.ProcSubfinder(ctx)
 			ctx.hosts += add_domains
+			progress_status["progress"] += 25
 		except Exception as e:
 			Log(Level.ERROR, f"[subfinder] subfinder failed: {e}")
 
@@ -132,10 +146,13 @@ def read_root():
 	if Config.EnableNmap:
 		try:
 			# スキャン
+			progress_status["current_task"]="nmap"
 			nm = Nmap.ProcNmap(ctx)
+			progress_status["progress"] += 25
 
 			# CVE検索機能が有効なら検索する
 			if Config.SearchCVE:
+				progress_status["current_task"]="searchcve"
 				# NmapはCPE文字列まで返してくれるのでそれを使う
 				cpes = set()
 
@@ -201,6 +218,7 @@ def read_root():
 				try:
 					cveData = CVE.ProcCVE(ctx, cpes)
 					Log(Level.INFO, f"[CVE] Found {len(cveData)} CVE(s)")
+					progress_status["progress"] += 25
 				except Exception as e:
 					Log(Level.ERROR, f"[CVE] Searching CVE failed: {e}")
 		except Exception as e:
@@ -210,18 +228,23 @@ def read_root():
 	if Config.SearchWeb:
 		try:
 			# 検索
+			progress_status["current_task"]="searchweb"
 			DDG.ProcDDG(ctx)
+			progress_status["progress"] += 10
 		except Exception as e:
 			Log(Level.ERROR, f"[DDG] Searching failed: {e}")
 
 	# Eメールでのレポート
 	if Config.EnableReporting:
+		progress_status["current_task"]="report"
 		try:
 			# CVE情報はCVSS3スコアの昇順でソートされているためリバースする
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
 			cveData.reverse()
 			# レポートする
 			Report.makereport(ctx, cveData, hostCpes, hostCpePorts)
+			progress_status["progress"] += 15
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
+	progress_status["progress"] ==100 
 	return {"message": "Running ASM!"}
