@@ -12,6 +12,9 @@ import proc_cve as CVE
 from log import Logger, Level
 import json
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
+from pydantic import BaseModel
+from typing import List
 app = FastAPI()
 # CORS ミドルウェアを追加
 app.add_middleware(
@@ -21,6 +24,43 @@ app.add_middleware(
     allow_methods=["*"],  # 全てのHTTPメソッドを許可
     allow_headers=["*"],  # 全てのHTTPヘッダーを許可
 )
+
+# リクエストボディ用モデル
+class ConfigModel(BaseModel):
+    ##### 全体 #####
+    TargetHosts: List[str]
+    ExcludeHosts: List[str]
+    ColorOutput: bool
+    LogLevel: str  # レベルが文字列の場合
+    ##### subfinder #####
+    EnableSubfinder: bool
+    ##### レポート機能 #####
+    EnableReporting: bool
+    ReportEmails: List[str]
+    ReportLimit: int
+    ReportSince: datetime
+    ReportMinCVSS3: float
+    ReportCSVEncoding: str
+    EnableGemini: bool
+    ReportAPIKey: str
+    ReportEnableBCC: bool
+    ReportFrom: str
+    ##### Nmap #####
+    EnableNmap: bool
+    NmapExtraArgs: List[str]
+    ##### Web検索機能 #####
+    SearchWeb: bool
+    WebQuery: str
+    WebRegion: str
+    WebMaxResults: int
+    WebBackend: str
+    ##### CVE検索機能 #####
+    SearchCVE: bool
+    CVEAPIBase: str
+    ##### 脆弱性診断 #####
+    EnableVAT: bool
+    RepeatAfterMeIAmSureToRunTheVAT: str
+    VATPath: str
 
 @app.get("/run-asm")
 def read_root():
