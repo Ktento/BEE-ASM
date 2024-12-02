@@ -2,18 +2,15 @@ import {
   Accordion,
   AccordionItem,
   Box,
-  Card,
-  CardBody,
-  CardHeader,
   Checkbox,
   FormControl,
-  Heading,
   Input,
   Radio,
   RadioGroup,
 } from "@yamada-ui/react";
 import { useState } from "react";
 import { SearchRegion } from "../types/enums/SearchRegion";
+import ConfigCard from "./ConfigCard";
 
 function Config() {
   const [enableColor, setEnableColor] = useState(false);
@@ -238,21 +235,4 @@ function Config() {
   );
 }
 
-interface ConfigCardProps {
-  header?: string;
-  content: JSX.Element;
-}
-
-function ConfigCard(props: ConfigCardProps) {
-  return (
-    <Card>
-      {props.header && (
-        <CardHeader>
-          <Heading>{props.header}</Heading>
-        </CardHeader>
-      )}
-      <CardBody>{props.content}</CardBody>
-    </Card>
-  );
-}
 export default Config;
