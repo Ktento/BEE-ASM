@@ -1,15 +1,18 @@
 import { Box, Button, FormControl, Heading, Input } from "@yamada-ui/react";
 import { useState } from "react";
 import Config from "../components/Config";
+import { useNavigate } from "react-router-dom";
 
 function Index() {
   const [domain, setDomain] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const res = await fetch("http://localhost:8000/run-asm");
       console.log(res);
+      if (res.ok) navigate("/success");
     } catch (error) {
       console.error("Error calling backend:", error);
     }
