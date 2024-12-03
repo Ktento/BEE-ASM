@@ -3,3 +3,5 @@ python-nmap>=0.7.1
 requests
 lxml
 configparser
+fastapi
+uvicorn[gunicorn]

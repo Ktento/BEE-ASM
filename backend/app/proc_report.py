@@ -52,13 +52,13 @@ def review_description(description):
 	# 	print(f"failed. http status code: {response.status_code}")
 	# 	print("preview:", response.text)
 
-def create_csvs(cveData, hostCpes, fAll, fPer):
+def create_csvs(cveData, hostCpes, hostCpePorts, fAll, fPer):
 	# 全ホストのCVE情報
-	wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Description", "Gemini"])
+	wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 	wa.writeheader()
 
 	# ホストごとのCVE情報
-	wp = csv.DictWriter(fPer, ["Host", "CPE", "CVEID", "CVSS3", "CVSS", "Description", "Gemini"])
+	wp = csv.DictWriter(fPer, ["Host", "Ports", "CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 	wp.writeheader()
 
 	dic = dict()
@@ -68,6 +68,7 @@ def create_csvs(cveData, hostCpes, fAll, fPer):
 			"CVEID": cve["id"],
 			"CVSS3": str.format("{:.1f}", cve["cvss3"]),
 			"CVSS": str.format("{:.1f}", cve["cvss"]),
+			"Published":  cve["published_str"],
 			"Description":  cve["summary"],
 			"Gemini": cve["gemini"],
 		}
@@ -83,6 +84,11 @@ def create_csvs(cveData, hostCpes, fAll, fPer):
 			if cpe not in dic: continue
 			for i in dic[cpe]:
 				i["Host"] = hostCpe[0]
+				i["Ports"] = "(Unknown)"
+				for hostCpePort in hostCpePorts:
+					if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
+						i["Ports"] = str.join(", ", hostCpePort["ports"])
+						break
 				wp.writerow(i)
 
 def send_email(ctx, body, attachments):
@@ -143,22 +149,46 @@ def send_email(ctx, body, attachments):
 	finally:
 		if server != None: server.quit()
 
-def makereport(context: Context, cve_data_array, host_cpes):
+def makereport(context: Context, cve_data_array, host_cpes, host_cpe_ports):
 	context.logger.Log(Level.INFO, f"[Report] Getting CVE information...")
 
 	# 諸条件に一致するCVE情報のみ抽出する
-	cve_data_array = filtering_cves(cve_data_array)
+	filtered = filtering_cves(cve_data_array)
+	cve_data_array = filtered["cveData"]
 	for c in cve_data_array:
-		c["gemini"] = "Gemini is not permitted"
+		c["gemini"] = "(Not permitted)"
 
 	# Gemini有効時、抽出したものをレビューしてもらう
 	if Config.EnableGemini:
 		for c in cve_data_array[:Config.ReportLimit]:
-			c["gemini"] = review_description(c["summary"])
+			try:
+				c["gemini"] = review_description(c["summary"])
+			except Exception as e:
+				c["gemini"] = "(Failed)"
+
+	extra = ""
+	if len(filtered["unknownVersionFound"]) > 0:
+		ss = set(filtered["unknownVersionFound"])
+		since = Config.ReportSince.strftime("%Y年%m月%d日")
+		extra = f"<p>以下のプラットフォームのバージョンを検出できませんでした。それらのCVE情報は代替として{since}以降に発行されたものを出力しています。</p><ul>"
+		for sss in ss:
+			extra += "<li>"
+			splitted = sss.split(":")
+			if len(splitted) > 3:
+				extra += f"{splitted[2]} {splitted[3]}"
+			elif len(splitted) > 2:
+				extra += f"{splitted[2]}"
+			else:
+				extra += f"{sss}"
+			extra += "</li>"
+		extra += "</ul>"
 
 	# HTML文書作成
-	html = mkhtml(context, cve_data_array, host_cpes)
-	with open("/tmp/p.html", "wb") as f: f.write(html)
+	html = mkhtml(context, cve_data_array, host_cpes, host_cpe_ports, extra)
+	try:
+		with open(f"{context.savedir}/cve_report.html", "wb") as f: f.write(html)
+	except Exception as e:
+		context.logger.Log(Level.ERROR, f"[Report] Failed to write the HTML report to file: {e}")
 
 	# 全ホストのCVEを格納するCSVのファイル名
 	csv_filename_all = f"{context.savedir}/cve_report_all.csv"
@@ -168,7 +198,7 @@ def makereport(context: Context, cve_data_array, host_cpes):
 	# CSVファイルの作成
 	with open(csv_filename_all, mode='w', newline='', encoding=Config.ReportCSVEncoding) as csvfile_all, \
 		open(csv_filename_per, mode='w', newline='', encoding=Config.ReportCSVEncoding) as csvfile_per:
-		create_csvs(cve_data_array, host_cpes, csvfile_all, csvfile_per)
+		create_csvs(cve_data_array, host_cpes, host_cpe_ports, csvfile_all, csvfile_per)
 
 	# CSVを添付してEメール送信
 	context.logger.Log(Level.INFO, f"[Report] Sending mail...")
@@ -186,23 +216,28 @@ def makereport(context: Context, cve_data_array, host_cpes):
 # CVSS3スコアがしきい値以上でかつ(CPEのバージョンが判っている、もしくはCVE発行日時がしきい値以降である)
 # 場合のCVE情報を抽出する
 def filtering_cves(cveData):
-	def ok(i):
+	unknownVerFound = []
+	def ok(i, unknownVerFound):
 		# CVEが設定された日時以降に発行されていた場合はTrue
 		if i["published"] >= Config.ReportSince: return True
 
 		# CPE内にバージョンが含まれていない場合はFalse
 		splitted = i["cpe"].split(":")
-		if len(splitted) < 5: return False
-		if splitted[4] == "" or splitted[4] == "*": return False
+		if len(splitted) < 5 or splitted[4] == "" or splitted[4] == "*":
+			unknownVerFound.append(i["cpe"])
+			return False
 
 		# 含まれている場合はTrue
 		return True
 
-	return [i for i in cveData
-		if i["cvss3"] >= Config.ReportMinCVSS3 and ok(i)]
+	return {
+		"cveData": [i for i in cveData
+			if i["cvss3"] >= Config.ReportMinCVSS3 and ok(i, unknownVerFound)],
+		"unknownVersionFound": unknownVerFound
+	}
 
-def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
-	baseHtml = ET.fromstring("""\
+def mkhtml(ctx: Context, cveData, hostCpes, hostCpePorts, extra) -> bytes:
+	baseHtml = ET.fromstring(f"""\
 <html>
 	<head>
 		<meta charset="UTF-8" />
@@ -211,6 +246,7 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 	</head>
 	<body>
 		<h1>ASM レポート</h1>
+{extra}
 		<h2>全ホスト</h2>
 		<table border="1">
 			<thead>
@@ -218,6 +254,7 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 					<th>CPE文字列</th>
 					<th>CVE ID</th>
 					<th>CVSS3</th>
+					<th>発行日</th>
 					<th>CVEの説明</th>
 					<th>Gemini</th>
 				</tr>
@@ -230,9 +267,11 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 			<thead>
 				<tr>
 					<th>ホスト</th>
+					<th>ポート</th>
 					<th>CPE文字列</th>
 					<th>CVE ID</th>
 					<th>CVSS3</th>
+					<th>発行日</th>
 					<th>CVEの説明</th>
 					<th>Gemini</th>
 				</tr>
@@ -253,11 +292,14 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 		cpe = ET.Element("td")
 		cveId = ET.Element("td")
 		cvss3 = ET.Element("td")
+		published = ET.Element("td")
 		cveDesc = ET.Element("td")
 		extra = ET.Element("td")
 
 		cpe.text = cve["cpe"]
 		cveId.text = cve["id"]
+		cveDesc.text = cve["summary"] if cve["summary"] != None else ""
+		published.text = cve["published_str"]
 		extra.text = cve["gemini"]
 
 		score = cve["cvss3"]
@@ -280,16 +322,17 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 
 		# CSS
 		cvss3.attrib["style"] = f"background-color: #{bgColor}; color: {fgColor}; text-align: right;"
-		cveDesc.text = cve["summary"] if cve["summary"] != None else ""
 
+		t = (cveId, cvss3, cveDesc, published, extra)
 		if cve["cpe"] in dic:
-			dic[cve["cpe"]].append((cveId, cvss3, cveDesc, extra))
+			dic[cve["cpe"]].append(t)
 		else:
-			dic[cve["cpe"]] = [(cveId, cvss3, cveDesc, extra)]
+			dic[cve["cpe"]] = [t]
 
 		row.append(cpe)
 		row.append(cveId)
 		row.append(cvss3)
+		row.append(published)
 		row.append(cveDesc)
 		row.append(extra)
 		allhosts.append(row)
@@ -300,12 +343,20 @@ def mkhtml(ctx: Context, cveData, hostCpes) -> bytes:
 			for i in dic[cpe]:
 				row = ET.Element("tr")
 				host = ET.Element("td")
+				ports = ET.Element("td")
 				cpee = ET.Element("td")
 
 				host.text = hostCpe[0]
 				cpee.text = cpe
 
+				ports.text = "(Unknown)"
+				for hostCpePort in hostCpePorts:
+					if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
+						ports.text = str.join(", ", hostCpePort["ports"])
+						break
+
 				row.append(host)
+				row.append(ports)
 				row.append(cpee)
 				for j in i:
 					row.append(j)

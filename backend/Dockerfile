@@ -4,8 +4,9 @@ FROM python:3.10-slim
 # 作業ディレクトリを設定
 WORKDIR /app
 
-# システムツールをインストール
+# 必要なパッケージをインストール
 RUN apt-get update && apt-get install -y \
+    gcc \
     nmap \
     wget \ 
     unzip \
@@ -23,18 +24,13 @@ RUN wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.7/
     mv subfinder /usr/local/bin/ && \
     rm subfinder_2.6.7_linux_amd64.zip
 
-# 必要なPythonモジュールをインストールする準備
-COPY requirements.txt .
-
 # Pythonの依存関係をインストール
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# プロジェクトファイルをコンテナにコピー
-COPY . .
+# FastAPIアプリケーションをコピー
+COPY app /app
 
-# 必要に応じてポートを公開（デフォルト設定）
-EXPOSE 8000
-
-# コンテナ起動時のデフォルトコマンド
-CMD ["python", "__main__.py"]
+# Uvicornを使用してFastAPIアプリケーションを起動
+CMD ["uvicorn", "fastapi_main:app", "--host", "0.0.0.0", "--port", "8000"]
 

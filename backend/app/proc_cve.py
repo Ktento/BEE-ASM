@@ -60,7 +60,8 @@ def ProcCVE(context: Context, cpes: set) -> list:
 				result.append({
 					"cpe": cpe,  # 入力のCPE文字列。どの入力に対する結果であるかを区別できるようにするため
 					"id": v["id"],  # CVE ID ("CVE-YYYY-NNNN+")
-					"published": pubdate,  # 発行日時
+					"published": pubdate,  # 発行日時(datetime型)
+					"published_str": v["Published"],  # 発行日時(入力そのまま)
 					"cvss": v["cvss"] if "cvss" in v else -1.0,
 					"cvss3": v["cvss3"] if "cvss3" in v else -1.0,
 					"summary": v["summary"] if "summary" in v else None

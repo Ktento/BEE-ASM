@@ -44,19 +44,6 @@ if __name__ == "__main__":
 	if not Config.EnableNmap and Config.SearchCVE:
 		Log(Level.WARN, "CVE search feature disabled due to Nmap is disabled in config.")
 
-	# 脆弱性診断ツール(VAT)を有効にする場合、決意を問う
-	# というのもASMツールの範疇を超えているため
-	ensured = Config.RepeatAfterMeIAmSureToRunTheVAT == "IAmSureToRunTheVAT"
-	Log(Level.INFO, "Execute the vulnerability assessment tool (VAT): " + ("Enabled" if Config.EnableVAT and ensured else ("Not ensured" if Config.EnableVAT and not ensured else "Disabled")))
-	if Config.EnableVAT and not ensured:
-		Log(Level.FATAL, "To enable VAT, you need to be sure what you are going to do.")
-		Log(Level.INFO, 'If you REALLY want to enable VAT, set the config "RepeatAfterMeIAmSureToRunTheVAT" to "IAmSureToRunTheVAT". Otherwise, set "EnableVAT" to False.')
-		Log(Level.INFO, 'Exiting.')
-		# 決意が足りなかったら終了
-		# 早期に終了することで早めに修正できるようにしておく
-		end()
-		sys.exit(1)
-
 	# 検査対象、および検査対象外のホストもログに残す
 	Log(Level.INFO, "Target hosts: " + str.join(", ", Config.TargetHosts))
 	Log(Level.INFO, "Excluded hosts (subfinder, Nmap): " + str.join(", ", Config.ExcludeHosts))
@@ -73,15 +60,27 @@ if __name__ == "__main__":
 	Log(Level.INFO, f"New target hosts: {ctx.hosts}")
 
 	# Nmap
+
 	# 後の報告のためにCVEデータを格納する
 	cveData = []
+
 	# ホストとそのホストに対応するCPE文字列の組
-	hostCpes = []
 	# [
 	#   ("ホスト0", {"CPE文字列0", "CPE文字列1", ...}),
 	#   ("ホスト1", {"CPE文字列0", "CPE文字列1", ...}), ...
 	# ]
 	# のような形式になる
+	hostCpes = []
+
+	# ホストとCPE文字列に対応するプロコトル名とポート番号
+	# 一つのサービスに複数のポートが割り当てられていることもあるためこうする
+	# [
+	#   {"host": "ホスト0", "cpe": "CPE文字列0", "ports": ["プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...]},
+	#   {"host": "ホスト1", "cpe": "CPE文字列1", "ports": ["プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...]}, ...
+	# ]
+	# のような形式になる
+	hostCpePorts = []
+
 	if Config.EnableNmap:
 		try:
 			# スキャン
@@ -101,10 +100,21 @@ if __name__ == "__main__":
 				# ただし、あるサービスに2つ以上のCPE文字列があると1つのみ返される
 				# そのため、ここでは代わりにNmapのXML出力からCPE文字列を取得することにする
 
+				# NmapのCPE文字列を修正
+				def fixcpe(input):
+					try:
+						fixes = {
+							"cpe:/a:microsoft:iis:10.0": "cpe:/a:microsoft:internet_information_services:10.0",
+						}
+						return fixes[input] if input in fixes else input
+					except Exception:
+						return input
+
 				# Nmapが出力したXMLドキュメントから列挙する
 				elm = ET.fromstring(nm.get_nmap_last_output())
 				xmlCpes = elm.findall("./host/ports/port/service/cpe")
 				for i in xmlCpes:
+					i.text = fixcpe(i.text)
 					cpes.add(i.text)
 
 				for host in elm.findall("./host"):
@@ -116,11 +126,26 @@ if __name__ == "__main__":
 					if hostIp is not None: hostIp = hostIp.attrib["addr"]
 					# それも無ければ不明として扱う
 					theName = hostnameUser if hostnameUser is not None else hostIp if hostIp is not None else "<hostname/address unknown>"
-					xmlCpes = host.findall("./ports/port/service/cpe")
-					# まとめる
-					s = set(map(lambda i:i.text, xmlCpes))
-					s.discard("")
-					hostCpes.append((theName, s))
+
+					xmlPorts = host.findall("./ports/port")
+					for xmlPort in xmlPorts:
+						p = f'{xmlPort.attrib["protocol"]}/{xmlPort.attrib["portid"]}'
+
+						xmlCpes = xmlPort.findall("./service/cpe")
+						# まとめる
+						s = set(map(lambda i:i.text, xmlCpes))
+						s.discard("")
+						hostCpes.append((theName, s))
+
+						for ss in s:
+							found = False
+							for hostCpePort in hostCpePorts:
+								if hostCpePort["host"] == theName and hostCpePort["cpe"] == ss:
+									hostCpePort["ports"].append(p)
+									found = True
+									break
+							if not found:
+								hostCpePorts.append({"host": theName, "cpe": ss, "ports": [p]})
 
 				# 空の文字列が入る場合があるので取り除く
 				cpes.discard("")
@@ -141,22 +166,6 @@ if __name__ == "__main__":
 		except Exception as e:
 			Log(Level.ERROR, f"[DDG] Searching failed: {e}")
 
-	# VATの起動
-	if Config.EnableVAT and ensured:
-		try:
-			Log(Level.INFO, "[VAT] Launching the VAT...")
-			# 起動
-			vatResult = subprocess.run([Config.VATPath], capture_output=True)
-			Log(Level.INFO, "[VAT] VAT finished.")
-			Log(Level.INFO, f"[VAT] VAT stdout:\n{vatResult.stdout.decode('utf-8', 'replace')}")
-			Log(Level.INFO, f"[VAT] VAT stderr:\n{vatResult.stderr.decode('utf-8', 'replace')}")
-			Log(Level.INFO, f"[VAT] VAT return code: {vatResult.returncode}")
-			with open(f"{resultdir}/vat_stdout.txt", "wb") as o, open(f"{resultdir}/vat_stderr.txt", "wb") as e:
-				o.write(vatResult.stdout)
-				e.write(vatResult.stderr)
-		except Exception as e:
-			Log(Level.ERROR, f"[VAT] VAT failed: {e}")
-
 	# Eメールでのレポート
 	if Config.EnableReporting:
 		try:
@@ -164,7 +173,7 @@ if __name__ == "__main__":
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
 			cveData.reverse()
 			# レポートする
-			Report.makereport(ctx, cveData, hostCpes)
+			Report.makereport(ctx, cveData, hostCpes, hostCpePorts)
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
 
