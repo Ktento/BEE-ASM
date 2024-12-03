@@ -11,12 +11,11 @@ function Index() {
     e.preventDefault();
     try {
       const res = await fetch("http://localhost:8000/run-asm");
-      console.log(res);
       if (res.ok) navigate("/success");
+      console.log(res);
     } catch (error) {
       console.error("Error calling backend:", error);
     }
-    console.log(domain);
   };
 
   return (
