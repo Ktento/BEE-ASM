@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,BackgroundTasks
 #!/usr/bin/env python3
 import os, sys, time, subprocess
 import xml.etree.ElementTree as ET
@@ -64,14 +64,25 @@ class ConfigModel(BaseModel):
 #current_task ->実行中の処理を記録 
 #実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
 progress_status = {"progress": 0,"current_task": ""}
+result = {"text":"result"}
 #進捗表示を返すAPI
 @app.get("/progress")
 def get_progress():
     return JSONResponse(content=progress_status)
 
+@app.get("/result")
+def get_result():
+	return JSONResponse(content=result)
+	
 @app.get("/run-asm")
-def read_root():
+def read_root(background_tasks:BackgroundTasks):
+	background_tasks.add_task(execute_asm)
+	return {"isOk":True}
+
+def execute_asm():
 	global progress_status
+	global result
+	result["text"]="finish"	
 	# 結果出力先の作成
 	# 結果は カレントディレクトリー/result_<整数のUNIX時刻>/
 	# に保存される
