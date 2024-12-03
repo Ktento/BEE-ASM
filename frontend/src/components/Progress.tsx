@@ -8,7 +8,7 @@ function Progress() {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const response = await fetch(ENDPOINT);
+        const response = await fetch(`${ENDPOINT}/progress`);
         if (!response.ok) throw new Error("Failed to fetch progress");
         const data = await response.json();
         if (data && typeof data.progress === "number")
