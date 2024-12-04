@@ -230,11 +230,10 @@ def execute_asm():
 			# レポートする
 			Report.makereport(ctx, cveData, hostCpes, hostCpePorts)
 			hostCpes=[(ip, list(cpe_set)) for ip, cpe_set in hostCpes]
-			print(hostCpes)
 			result.update({
-				"cveData":json.dumps(convert_datetime_to_str(cveData),ensure_ascii=False, indent=0),
-				"hostCpes":json.dumps(hostCpes,ensure_ascii=False, indent=0),
-				"hostCpePorts":json.dumps(hostCpePorts,ensure_ascii=False, indent=0)
+				"cveData":json.dumps(convert_datetime_to_str(cveData),ensure_ascii=False),
+				"hostCpes":json.dumps(hostCpes,ensure_ascii=False),
+				"hostCpePorts":json.dumps(hostCpePorts,ensure_ascii=False)
 			})
 			progress_status["progress"] += 15
 		except Exception as e:
@@ -242,8 +241,7 @@ def execute_asm():
 	progress_status["progress"] = 100
 	return {"message": "Running ASM!"}
 def convert_datetime_to_str(cvedata):
-    for entry in cvedata:
-        for key, value in entry.items():
-            if isinstance(value, datetime):
-                entry[key] = value.isoformat()  # ISO 8601形式の文字列に変換
-    return cvedata
+	for entry in cvedata:
+		if 'published' in entry and isinstance(entry['published'], datetime):
+			entry['published'] = entry['published'].isoformat()  # ISO 8601形式の文字列に変換
+	return cvedata
