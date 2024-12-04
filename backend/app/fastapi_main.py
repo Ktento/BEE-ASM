@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 import os, sys, time, subprocess
 import xml.etree.ElementTree as ET
 import config as Config
@@ -16,6 +16,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from typing import Any, List
 from routers import session, html, log
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -28,14 +29,36 @@ app.include_router(log.router)
 # CORS ミドルウェアを追加
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=["http://localhost:8080"],  # フロントエンドのオリジンを許可
+	allow_origins=["http://localhost:80"],  # フロントエンドのオリジンを許可
 	allow_credentials=True,
 	allow_methods=["*"],  # 全てのHTTPメソッドを許可
 	allow_headers=["*"],  # 全てのHTTPヘッダーを許可
 )
 
+# 進捗状況
+#progress ->subfinder,nmap,cve-search,reportが進む度25進む
+#current_task ->実行中の処理を記録
+#実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
+progress_status = {"progress": 0,"current_task": ""}
+result = {"text":"result"}
+#進捗表示を返すAPI
+@app.get("/progress")
+def get_progress():
+    return JSONResponse(content=progress_status)
+
+@app.get("/result")
+def get_result():
+	return JSONResponse(content=result)
+
 @app.post("/run-asm")
-def run_asm():
+def read_root(background_tasks:BackgroundTasks):
+	background_tasks.add_task(execute_asm)
+	return {"isOk":True}
+
+def execute_asm():
+	global progress_status
+	global result
+	result["text"]="finish"	
 	# 結果出力先の作成
 	# 結果は カレントディレクトリー/result_<整数のUNIX時刻>/
 	# に保存される
@@ -49,7 +72,7 @@ def run_asm():
 
 	def end():
 		Log(Level.INFO, f"===== APPLICATION FINISHED (PID: {os.getpid()}) =====")
-
+	progress_status["progress"] = 0
 	# アプリケーションが起動したこと、および自身のPID そしてログ出力先をログに残す
 	Log(Level.INFO, f"===== APPLICATION STARTED (PID: {os.getpid()}) =====")
 	Log(Level.INFO, f"Current directory: {os.getcwd()}")
@@ -76,8 +99,10 @@ def run_asm():
 	if Config.EnableSubfinder:
 		try:
 			# スキャン
+			progress_status["current_task"]="subfinder"
 			add_domains = Subfinder.ProcSubfinder(ctx)
 			ctx.hosts += add_domains
+			progress_status["progress"] += 25
 		except Exception as e:
 			Log(Level.ERROR, f"[subfinder] subfinder failed: {e}")
 
@@ -108,10 +133,13 @@ def run_asm():
 	if Config.EnableNmap:
 		try:
 			# スキャン
+			progress_status["current_task"]="nmap"
 			nm = Nmap.ProcNmap(ctx)
+			progress_status["progress"] += 25
 
 			# CVE検索機能が有効なら検索する
 			if Config.SearchCVE:
+				progress_status["current_task"]="searchcve"
 				# NmapはCPE文字列まで返してくれるのでそれを使う
 				cpes = set()
 
@@ -177,6 +205,7 @@ def run_asm():
 				try:
 					cveData = CVE.ProcCVE(ctx, cpes)
 					Log(Level.INFO, f"[CVE] Found {len(cveData)} CVE(s)")
+					progress_status["progress"] += 25
 				except Exception as e:
 					Log(Level.ERROR, f"[CVE] Searching CVE failed: {e}")
 		except Exception as e:
@@ -186,18 +215,23 @@ def run_asm():
 	if Config.SearchWeb:
 		try:
 			# 検索
+			progress_status["current_task"]="searchweb"
 			DDG.ProcDDG(ctx)
+			progress_status["progress"] += 10
 		except Exception as e:
 			Log(Level.ERROR, f"[DDG] Searching failed: {e}")
 
 	# Eメールでのレポート
 	if Config.EnableReporting:
+		progress_status["current_task"]="report"
 		try:
 			# CVE情報はCVSS3スコアの昇順でソートされているためリバースする
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
 			cveData.reverse()
 			# レポートする
 			Report.makereport(ctx, cveData, hostCpes, hostCpePorts)
+			progress_status["progress"] += 15
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
+	progress_status["progress"] ==100
 	return {"message": "Running ASM!"}
