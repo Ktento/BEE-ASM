@@ -14,14 +14,40 @@ class Level(Enum):
 	def __str__(self) -> str:
 		return self.name
 
+class Log:
+	__date: datetime
+	__level: Level
+	__body: str
+
+	@property
+	def date(self): return self.__date
+
+	@property
+	def level(self): return self.__level
+
+	@property
+	def body(self): return self.__body
+
+	def __init__(self, date, level, body) -> None:
+		self.__date = date
+		self.__level = level
+		self.__body = body
+
+	def __str__(self) -> str:
+		return f"[{self.date}] [{self.level.__str__()}] {self.body}"
+
 class Logger:
-	def __init__(self, filepath) -> None:
+	def __init__(self, filepath: str) -> None:
 		self.__file = None
+		self.__logs: list[Log] = []
 		if filepath != None:
 			self.__file = open(filepath, "a+")
 
 	@property
 	def filename(self): return self.__file.name if self.__file != None else None
+
+	@property
+	def logs(self): return self.__logs.copy()
 
 	def Log(self, level: Level, text: str) -> bool:
 		"""ロギングします。
@@ -42,9 +68,15 @@ class Logger:
 			}
 			if level in colors:
 				lv = f"\033[{colors[level]}m{level}\033[m"
-		date = datetime.now(timezone.utc).astimezone().isoformat()
+		date = datetime.now(timezone.utc).astimezone()
+		self.__logs.append(Log(date, level, text))
+		date = date.isoformat()
 		print(f"[{date}] [{lv}] {text}")
 		if self.__file != None:
 			# ログファイルは色付けない
 			self.__file.write(f"[{date}] [{level}] {text}\n")
 		return True
+
+	def finish(self):
+		if self.__file is not None and not self.__file.closed:
+			self.__file.close()

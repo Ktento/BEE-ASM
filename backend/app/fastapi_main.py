@@ -1,5 +1,5 @@
-from fastapi import FastAPI
 #!/usr/bin/env python3
+from fastapi import FastAPI
 import os, sys, time, subprocess
 import xml.etree.ElementTree as ET
 import config as Config
@@ -14,52 +14,28 @@ import json
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import Any, List
+from routers import session, html, log
+
 app = FastAPI()
+
+app.include_router(html.router)
+app.include_router(session.router)
+app.include_router(log.router)
+
+# python3 -m uvicorn fastapi_main:app --reload
+
 # CORS ミドルウェアを追加
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # フロントエンドのオリジンを許可
-    allow_credentials=True,
-    allow_methods=["*"],  # 全てのHTTPメソッドを許可
-    allow_headers=["*"],  # 全てのHTTPヘッダーを許可
+	CORSMiddleware,
+	allow_origins=["http://localhost:8080"],  # フロントエンドのオリジンを許可
+	allow_credentials=True,
+	allow_methods=["*"],  # 全てのHTTPメソッドを許可
+	allow_headers=["*"],  # 全てのHTTPヘッダーを許可
 )
 
-# リクエストボディ用モデル
-class ConfigModel(BaseModel):
-    ##### 全体 #####
-    TargetHosts: List[str]
-    ExcludeHosts: List[str]
-    ColorOutput: bool
-    LogLevel: str  # レベルが文字列の場合
-    ##### subfinder #####
-    EnableSubfinder: bool
-    ##### レポート機能 #####
-    EnableReporting: bool
-    ReportEmails: List[str]
-    ReportLimit: int
-    ReportSince: datetime
-    ReportMinCVSS3: float
-    ReportCSVEncoding: str
-    EnableGemini: bool
-    ReportAPIKey: str
-    ReportEnableBCC: bool
-    ReportFrom: str
-    ##### Nmap #####
-    EnableNmap: bool
-    NmapExtraArgs: List[str]
-    ##### Web検索機能 #####
-    SearchWeb: bool
-    WebQuery: str
-    WebRegion: str
-    WebMaxResults: int
-    WebBackend: str
-    ##### CVE検索機能 #####
-    SearchCVE: bool
-    CVEAPIBase: str
-
-@app.get("/run-asm")
-def read_root():
+@app.post("/run-asm")
+def run_asm():
 	# 結果出力先の作成
 	# 結果は カレントディレクトリー/result_<整数のUNIX時刻>/
 	# に保存される
@@ -67,7 +43,7 @@ def read_root():
 	resultdir = f"./result_{current_time}"
 	os.mkdir(resultdir)
 	logger = Logger(f"{resultdir}/log.txt")
-	ctx = Context(logger, resultdir, Config.TargetHosts)
+	ctx = Context(logger, resultdir, Config.TargetHosts, None)
 	# 簡略化用
 	Log = logger.Log
 
