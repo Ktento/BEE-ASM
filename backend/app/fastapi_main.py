@@ -1,5 +1,5 @@
-from fastapi import FastAPI,BackgroundTasks
 #!/usr/bin/env python3
+from fastapi import FastAPI, BackgroundTasks
 import os, sys, time, subprocess
 import xml.etree.ElementTree as ET
 import config as Config
@@ -14,67 +14,43 @@ import json
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import Any, List
+from routers import session, html, log
 from fastapi.responses import JSONResponse
+
 app = FastAPI()
+
+app.include_router(html.router)
+app.include_router(session.router)
+app.include_router(log.router)
+
+# python3 -m uvicorn fastapi_main:app --reload
+
 # CORS ミドルウェアを追加
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:80"],  # フロントエンドのオリジンを許可
-    allow_credentials=True,
-    allow_methods=["*"],  # 全てのHTTPメソッドを許可
-    allow_headers=["*"],  # 全てのHTTPヘッダーを許可
+	CORSMiddleware,
+	allow_origins=["http://localhost:80"],  # フロントエンドのオリジンを許可
+	allow_credentials=True,
+	allow_methods=["*"],  # 全てのHTTPメソッドを許可
+	allow_headers=["*"],  # 全てのHTTPヘッダーを許可
 )
 
-# リクエストボディ用モデル
-class ConfigModel(BaseModel):
-    ##### 全体 #####
-    TargetHosts: List[str]
-    ExcludeHosts: List[str]
-    ColorOutput: bool
-    LogLevel: str  # レベルが文字列の場合
-    ##### subfinder #####
-    EnableSubfinder: bool
-    ##### レポート機能 #####
-    EnableReporting: bool
-    ReportEmails: List[str]
-    ReportLimit: int
-    ReportSince: datetime
-    ReportMinCVSS3: float
-    ReportCSVEncoding: str
-    EnableGemini: bool
-    ReportAPIKey: str
-    ReportEnableBCC: bool
-    ReportFrom: str
-    ##### Nmap #####
-    EnableNmap: bool
-    NmapExtraArgs: List[str]
-    ##### Web検索機能 #####
-    SearchWeb: bool
-    WebQuery: str
-    WebRegion: str
-    WebMaxResults: int
-    WebBackend: str
-    ##### CVE検索機能 #####
-    SearchCVE: bool
-    CVEAPIBase: str
-
 # 進捗状況
-#progress ->subfinder,nmap,cve-search,reportが進む度25進む
-#current_task ->実行中の処理を記録 
-#実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
+# progress: subfinder, nmap, cve-search, reportが進む度25進む
+# current_task: 実行中の処理を記録
+# 実行中の処理状態はsubfinder, nmap, searchcve, searchweb, reportで切り替わる
 progress_status = {"progress": 0,"current_task": ""}
 result = {"text":"result","cveData":None,"hostCpes":None,"hostCpePorts":None}
 #進捗表示を返すAPI
 @app.get("/progress")
 def get_progress():
-    return JSONResponse(content=progress_status)
+	return JSONResponse(content=progress_status)
 
 @app.get("/result")
 def get_result():
 	return JSONResponse(content=result)
-	
-@app.get("/run-asm")
+
+@app.post("/run-asm")
 def read_root(background_tasks:BackgroundTasks):
 	background_tasks.add_task(execute_asm)
 	return {"isOk":True}
@@ -89,7 +65,7 @@ def execute_asm():
 	resultdir = f"./result_{current_time}"
 	os.mkdir(resultdir)
 	logger = Logger(f"{resultdir}/log.txt")
-	ctx = Context(logger, resultdir, Config.TargetHosts)
+	ctx = Context(logger, resultdir, Config.TargetHosts, None)
 	# 簡略化用
 	Log = logger.Log
 
@@ -122,7 +98,7 @@ def execute_asm():
 	if Config.EnableSubfinder:
 		try:
 			# スキャン
-			progress_status["current_task"]="subfinder"
+			progress_status["current_task"] = "subfinder"
 			add_domains = Subfinder.ProcSubfinder(ctx)
 			ctx.hosts += add_domains
 			progress_status["progress"] += 25
@@ -156,13 +132,13 @@ def execute_asm():
 	if Config.EnableNmap:
 		try:
 			# スキャン
-			progress_status["current_task"]="nmap"
+			progress_status["current_task"] = "nmap"
 			nm = Nmap.ProcNmap(ctx)
 			progress_status["progress"] += 25
 
 			# CVE検索機能が有効なら検索する
 			if Config.SearchCVE:
-				progress_status["current_task"]="searchcve"
+				progress_status["current_task"] = "searchcve"
 				# NmapはCPE文字列まで返してくれるのでそれを使う
 				cpes = set()
 
@@ -238,7 +214,7 @@ def execute_asm():
 	if Config.SearchWeb:
 		try:
 			# 検索
-			progress_status["current_task"]="searchweb"
+			progress_status["current_task"] = "searchweb"
 			DDG.ProcDDG(ctx)
 			progress_status["progress"] += 10
 		except Exception as e:
@@ -246,7 +222,7 @@ def execute_asm():
 
 	# Eメールでのレポート
 	if Config.EnableReporting:
-		progress_status["current_task"]="report"
+		progress_status["current_task"] = "report"
 		try:
 			# CVE情報はCVSS3スコアの昇順でソートされているためリバースする
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
@@ -263,7 +239,7 @@ def execute_asm():
 			progress_status["progress"] += 15
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
-	progress_status["progress"] ==100 
+	progress_status["progress"] = 100
 	return {"message": "Running ASM!"}
 def convert_datetime_to_str(cvedata):
     for entry in cvedata:
