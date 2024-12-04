@@ -9,7 +9,7 @@ from schemes.serverconfig import ServerConfigModel
 class SessionModel(BaseModel):
 	"""セッションを表します。"""
 
-	uuid: UUID = Field(..., description="セッションの識別子")
+	session_id: UUID = Field(..., description="セッションの識別子")
 	config: ConfigModel = Field(..., description="設定されているユーザー設定")
 	server_config: ServerConfigModel = Field(..., description="設定されているサーバー設定")
 	workdir: str = Field(..., description="バックエンド上の作業ディレクトリー")
@@ -19,7 +19,7 @@ class SessionModel(BaseModel):
 	@staticmethod
 	def from_session(session: Session):
 		return SessionModel(
-			uuid=session.uuid,
+			session_id=session.uuid,
 			config=session.config,
 			server_config=session.server_config,
 			workdir=str(session.workdir),
