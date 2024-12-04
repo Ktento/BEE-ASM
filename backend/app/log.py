@@ -7,12 +7,12 @@ class Level(Enum):
 	"""ログのレベル。"""
 
 	NONE = 0
-	"""なし。設定の`log_level`に指定するとログの記録が実質的に無効化されます（ただし`log.txt`は依然として生成されるでしょう）。
-	なお`Logger.Log`の`level`にはこれを指定しないようにしてください。"""
+	"""なし。ログ取得REST APIの`log_level`に指定すると結果のログ配列が実質的に空になります。
+	バックエンド側のデベロッパーへ: `Logger.Log`の`level`にはこれを指定しないようにしてください。"""
 
 	ALL = 100
-	"""すべて。設定の`log_level`に指定するとすべてのログが記録されます。
-	なお`Logger.Log`の`level`にはこれを指定しないようにしてください。"""
+	"""すべて。ログ取得REST APIの`log_level`に指定するとすべてのログが記録されます。
+	バックエンド側のデベロッパーへ: `Logger.Log`の`level`にはこれを指定しないようにしてください。"""
 
 	FATAL = 1
 	"""回復不可能なエラー。"""
@@ -69,10 +69,8 @@ class Logger:
 	def logs(self): return self.__logs.copy()
 
 	def Log(self, level: Level, text: str) -> bool:
-		"""ロギングします。
-		config.pyの設定により出力されなかった場合はFalseを、それ以外の場合はTrueを返します。"""
+		"""ロギングします。"""
 
-		if Level[self.__conf.log_level].value < level.value: return False
 		lv = level
 		# 色付けが有効ならANSIエスケープシーケンスで色付けする
 		if self.__conf.color_output:
