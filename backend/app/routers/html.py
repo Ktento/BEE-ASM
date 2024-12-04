@@ -10,7 +10,7 @@ def get_index_html():
 	data = """\
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="en">
+<html lang="en">
 	<head>
 		<title>The backend server of ASMTool</title>
 	</head>
