@@ -36,15 +36,16 @@ app.add_middleware(
 )
 
 # 進捗状況
-#progress ->subfinder,nmap,cve-search,reportが進む度25進む
-#current_task ->実行中の処理を記録
-#実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
+# progress: subfinder, nmap, cve-search, reportが進む度25進む
+# current_task: 実行中の処理を記録
+# 実行中の処理状態はsubfinder, nmap, searchcve, searchweb, reportで切り替わる
 progress_status = {"progress": 0,"current_task": ""}
 result = {"text":"result"}
-#進捗表示を返すAPI
+
+# 進捗表示を返すAPI
 @app.get("/progress")
 def get_progress():
-    return JSONResponse(content=progress_status)
+	return JSONResponse(content=progress_status)
 
 @app.get("/result")
 def get_result():
@@ -58,7 +59,7 @@ def read_root(background_tasks:BackgroundTasks):
 def execute_asm():
 	global progress_status
 	global result
-	result["text"]="finish"	
+	result["text"] = "finish"
 	# 結果出力先の作成
 	# 結果は カレントディレクトリー/result_<整数のUNIX時刻>/
 	# に保存される
@@ -99,7 +100,7 @@ def execute_asm():
 	if Config.EnableSubfinder:
 		try:
 			# スキャン
-			progress_status["current_task"]="subfinder"
+			progress_status["current_task"] = "subfinder"
 			add_domains = Subfinder.ProcSubfinder(ctx)
 			ctx.hosts += add_domains
 			progress_status["progress"] += 25
@@ -133,13 +134,13 @@ def execute_asm():
 	if Config.EnableNmap:
 		try:
 			# スキャン
-			progress_status["current_task"]="nmap"
+			progress_status["current_task"] = "nmap"
 			nm = Nmap.ProcNmap(ctx)
 			progress_status["progress"] += 25
 
 			# CVE検索機能が有効なら検索する
 			if Config.SearchCVE:
-				progress_status["current_task"]="searchcve"
+				progress_status["current_task"] = "searchcve"
 				# NmapはCPE文字列まで返してくれるのでそれを使う
 				cpes = set()
 
@@ -215,7 +216,7 @@ def execute_asm():
 	if Config.SearchWeb:
 		try:
 			# 検索
-			progress_status["current_task"]="searchweb"
+			progress_status["current_task"] = "searchweb"
 			DDG.ProcDDG(ctx)
 			progress_status["progress"] += 10
 		except Exception as e:
@@ -223,7 +224,7 @@ def execute_asm():
 
 	# Eメールでのレポート
 	if Config.EnableReporting:
-		progress_status["current_task"]="report"
+		progress_status["current_task"] = "report"
 		try:
 			# CVE情報はCVSS3スコアの昇順でソートされているためリバースする
 			# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
@@ -233,5 +234,5 @@ def execute_asm():
 			progress_status["progress"] += 15
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
-	progress_status["progress"] ==100
+	progress_status["progress"] = 100
 	return {"message": "Running ASM!"}
