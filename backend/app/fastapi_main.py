@@ -64,7 +64,7 @@ class ConfigModel(BaseModel):
 #current_task ->実行中の処理を記録 
 #実行中の処理状態はsubfinder,nmap,searchcve,searchweb,reportで切り替わる
 progress_status = {"progress": 0,"current_task": ""}
-result = {"text":"result"}
+result = {"text":"result","cveData":None,"hostCpes":None,"hostCpePorts":None}
 #進捗表示を返すAPI
 @app.get("/progress")
 def get_progress():
@@ -82,7 +82,6 @@ def read_root(background_tasks:BackgroundTasks):
 def execute_asm():
 	global progress_status
 	global result
-	result["text"]="finish"	
 	# 結果出力先の作成
 	# 結果は カレントディレクトリー/result_<整数のUNIX時刻>/
 	# に保存される
@@ -254,8 +253,21 @@ def execute_asm():
 			cveData.reverse()
 			# レポートする
 			Report.makereport(ctx, cveData, hostCpes, hostCpePorts)
+			hostCpes=[(ip, list(cpe_set)) for ip, cpe_set in hostCpes]
+			print(hostCpes)
+			result.update({
+				"cveData":json.dumps(convert_datetime_to_str(cveData),ensure_ascii=False, indent=0),
+				"hostCpes":json.dumps(hostCpes,ensure_ascii=False, indent=0),
+				"hostCpePorts":json.dumps(hostCpePorts,ensure_ascii=False, indent=0)
+			})
 			progress_status["progress"] += 15
 		except Exception as e:
 			Log(Level.ERROR, f"[Report] Report failed: {e}")
 	progress_status["progress"] ==100 
 	return {"message": "Running ASM!"}
+def convert_datetime_to_str(cvedata):
+    for entry in cvedata:
+        for key, value in entry.items():
+            if isinstance(value, datetime):
+                entry[key] = value.isoformat()  # ISO 8601形式の文字列に変換
+    return cvedata
