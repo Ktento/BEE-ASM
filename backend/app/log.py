@@ -4,13 +4,31 @@ from enum import Enum
 from schemes.config import ConfigModel
 
 class Level(Enum):
+	"""ログのレベル。"""
+
 	NONE = 0
+	"""なし。設定の`log_level`に指定するとログの記録が実質的に無効化されます（ただし`log.txt`は依然として生成されるでしょう）。
+	なお`Logger.Log`の`level`にはこれを指定しないようにしてください。"""
+
 	ALL = 100
+	"""すべて。設定の`log_level`に指定するとすべてのログが記録されます。
+	なお`Logger.Log`の`level`にはこれを指定しないようにしてください。"""
+
 	FATAL = 1
+	"""回復不可能なエラー。"""
+
 	ERROR = 2
+	"""回復可能なエラー。"""
+
 	WARN = 3
+	"""警告。"""
+
 	INFO = 4
+	"""情報。"""
+
 	DEBUG = 5
+	"""デバッグ用のログ。`INFO`よりも冗長な情報を含みます。"""
+
 	def __str__(self) -> str:
 		return self.name
 
@@ -72,7 +90,9 @@ class Logger:
 		date = datetime.now(timezone.utc).astimezone()
 		self.__logs.append(Log(date, level, text))
 		date = date.isoformat()
-		print(f"[{date}] [{lv}] {text}")
+		# 標準出力に出力する場合はTrue
+		enable_stdout = False
+		if enable_stdout: print(f"[{date}] [{lv}] {text}")
 		if self.__file != None:
 			# ログファイルは色付けない
 			self.__file.write(f"[{date}] [{level}] {text}\n")
