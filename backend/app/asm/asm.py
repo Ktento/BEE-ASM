@@ -167,6 +167,7 @@ class Asm:
 				Log(Level.ERROR, f"[Nmap] Nmap failed: {e}")
 			finally:
 				session.progress.task_progresses["nmap"] = 1.0
+				if session.config.search_cve: session.progress.task_progresses["cve"] = 1.0
 
 		# Web検索
 		if session.config.search_web:
