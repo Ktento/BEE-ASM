@@ -1,23 +1,18 @@
 #!/usr/bin/env python3
-import os
-import urllib.request
-import ssl
-import json
-import time
-import requests
-import smtplib
 import csv
-from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
-from xml.dom import minidom
-from datetime import datetime, timedelta
+from email.mime.text import MIMEText
+import os
+import smtplib
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+
+import requests
+
 from context import Context
 from log import Level
-import xml.etree.ElementTree as ET
-import urllib.parse
 
 class ProcReport:
 	__context: Context
@@ -367,4 +362,4 @@ class ProcReport:
 						row.append(j)
 					perhosts.append(row)
 
-		return b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8")
+		return b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + "\n"

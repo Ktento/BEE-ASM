@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
-from fastapi import FastAPI, BackgroundTasks
-import os, sys, time, subprocess
+import os
 import xml.etree.ElementTree as ET
-from context import Context
-import asm.proc_nmap as Nmap
-import asm.proc_ddg as DDG  # DDG ... DuckDuckGo
-import asm.proc_subfinder as Subfinder
-import asm.proc_report as Report
+
 import asm.proc_cve as CVE
-from log import Logger, Level
-import json
-from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
-from pydantic import BaseModel
-from typing import Any, List
-from fastapi.responses import JSONResponse
+import asm.proc_ddg as DDG
+import asm.proc_nmap as Nmap
+import asm.proc_report as Report
+import asm.proc_subfinder as Subfinder
+from context import Context
+from log import Level
 from session import Session
-from time import sleep
 
 class Asm:
 	def __init__(self, session: Session):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+from typing import final
 from uuid import UUID
-from typing import final, List
+
 from schemes.config import ConfigModel
 from session import Session
 

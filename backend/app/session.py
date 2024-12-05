@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import final
 from uuid import UUID, uuid4
+
+from log import Logger
 from schemes.config import ConfigModel
 from schemes.progress import ProgressModel
 from schemes.serverconfig import ServerConfigModel
-from log import Logger
 
 @final
 class Session():

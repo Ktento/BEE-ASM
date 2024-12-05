@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-from pydantic import BaseModel, Field
 from datetime import datetime
-from session import Session
 from uuid import UUID
+
+from pydantic import BaseModel, Field
+
 from schemes.config import ConfigModel
 from schemes.serverconfig import ServerConfigModel
+from session import Session
 
 class SessionModel(BaseModel):
 	"""セッションを表します。"""

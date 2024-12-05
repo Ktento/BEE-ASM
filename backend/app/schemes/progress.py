@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-from typing import Annotated
-from pydantic import AfterValidator, BaseModel, Field, computed_field
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
+
+from pydantic import AfterValidator, BaseModel, Field, computed_field
 
 def _check_zero_to_one(v: float) -> float:
 	assert 0.0 <= v and v <= 1.0

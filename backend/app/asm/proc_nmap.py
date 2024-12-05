@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Pythonパッケージ「python-nmap」との競合を防ぐためファイル名をproc_nmap.pyとしている
 from nmap import PortScanner
+
 from context import Context
 from log import Level
 

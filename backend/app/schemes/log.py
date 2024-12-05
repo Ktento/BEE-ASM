@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-from typing import Optional
-from pydantic import BaseModel, Field
 from datetime import datetime
-from log import Log, Level
+
+from pydantic import BaseModel, Field
+
+from log import Log
 
 class LogModel(BaseModel):
 	"""ログ"""

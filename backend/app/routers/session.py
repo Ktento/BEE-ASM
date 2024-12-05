@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-from datetime import datetime
 from uuid import UUID
-from fastapi import Depends, APIRouter, Response
+
+from fastapi import APIRouter, Depends, Response
 from fastapi.exceptions import HTTPException
-from log import Level
+
 from schemes.config import ConfigModel
 from schemes.session import SessionModel
-from schemes.log import LogModel
 from session import Session
 from singleton import SessionManager
 

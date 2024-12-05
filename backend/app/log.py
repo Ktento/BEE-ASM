@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from datetime import datetime, timezone
 from enum import Enum
+
 from schemes.config import ConfigModel
 
 class Level(Enum):

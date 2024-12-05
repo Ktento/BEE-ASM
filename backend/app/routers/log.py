@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 from datetime import datetime, timezone
-from uuid import UUID
-from fastapi import Depends, APIRouter, Response
+
+from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
-from fastapi.params import Param
+
 from log import Level
 from routers.session import ensure_session
-from schemes.config import ConfigModel
-from schemes.session import SessionModel
 from schemes.log import LogModel
-from singleton import SessionManager
 from session import Session
 
 router = APIRouter(tags=["ログ"])

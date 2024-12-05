@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import session, html, log, progress, asm
+
+from routers import asm, html, log, progress, session
 
 app = FastAPI()
 

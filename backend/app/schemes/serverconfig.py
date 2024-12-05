@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from pydantic import BaseModel, Field
-from datetime import datetime
 
 class ServerConfigModel(BaseModel):
 	"""サーバーの設定。ユーザー(クライアント)は変更できない"""

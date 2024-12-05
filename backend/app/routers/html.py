@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from fastapi import APIRouter, Response
+from fastapi import APIRouter
 from fastapi.responses import FileResponse, HTMLResponse
 
 router = APIRouter(tags=["Webブラウザーヘルパー"])

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # DDG ... DuckDuckGo
 import json
+
 from duckduckgo_search import DDGS
+
 from context import Context
 from log import Level
 
