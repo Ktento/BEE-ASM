@@ -10,7 +10,9 @@ function Index() {
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:8000/run-asm");
+      const res = await fetch("http://localhost:8000/run-asm", {
+        method: "POST", // POSTメソッドを指定
+      });
       if (res.ok) navigate("/success");
       console.log(res);
     } catch (error) {
