@@ -4,10 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import final, List
 from uuid import UUID, uuid4
-from log import Logger
 from context import Context
 from schemes.config import ConfigModel
 from schemes.serverconfig import ServerConfigModel
+from log import Logger
 
 @final
 class Session():
@@ -25,7 +25,7 @@ class Session():
 		self.__server_conf = ServerConfigModel(version="0.1.0", cveapi_base="https://cvepremium.circl.lu/api")
 		self.__workdir = Path("work", str(self.__uuid))
 		self.__workdir.mkdir(parents=True, exist_ok=False)
-		self.__logger = Logger(filepath=str(self.__workdir / "log.txt"))
+		self.__logger = Logger(filepath=str(self.__workdir / "log.txt"), user_config=self.__conf)
 		self.__active = True
 		self.__started_at = datetime.now()
 
