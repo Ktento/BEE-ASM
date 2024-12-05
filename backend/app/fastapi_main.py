@@ -29,7 +29,7 @@ app.include_router(log.router)
 # CORS ミドルウェアを追加
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=["http://localhost:80"],  # フロントエンドのオリジンを許可
+	allow_origins=["*"],  # フロントエンドのオリジンを許可
 	allow_credentials=True,
 	allow_methods=["*"],  # 全てのHTTPメソッドを許可
 	allow_headers=["*"],  # 全てのHTTPヘッダーを許可
