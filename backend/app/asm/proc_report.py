@@ -166,7 +166,6 @@ class ProcReport:
 					c["gemini"] = "(Failed)"
 
 		extra = ""
-		print(filtered)
 		if len(filtered["unknownVersionFound"]) > 0:
 			ss = set(filtered["unknownVersionFound"])
 			since = self.__context.config.report_since.strftime("%Y年%m月%d日")
@@ -362,4 +361,4 @@ class ProcReport:
 						row.append(j)
 					perhosts.append(row)
 
-		return b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + "\n"
+		return b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + b"\n"
