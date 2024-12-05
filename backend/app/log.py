@@ -94,6 +94,7 @@ class Logger:
 		if self.__file != None:
 			# ログファイルは色付けない
 			self.__file.write(f"[{date}] [{level}] {text}\n")
+			self.__file.flush()
 		return True
 
 	def finish(self):

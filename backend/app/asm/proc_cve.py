@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import config as Config
 from context import Context
 from log import Level
 import urllib.request
@@ -19,7 +18,7 @@ def ProcCVE(context: Context, cpes: set) -> list:
 	context.logger.Log(Level.INFO, f"[CVE] Searching CVEs with CIRCL CVE-Search API...")
 	for cpe in cpes:
 		# リクエスト発行先のURL
-		url = f"{Config.CVEAPIBase}/cvefor/{cpe}"
+		url = f"{context.session.server_config.cveapi_base}/cvefor/{cpe}"
 
 		# ファイル名用にCPE文字列から置き換える対象の文字列
 		# 後の処理で"cve_<置換済みのCPE文字列>.json"に保存する

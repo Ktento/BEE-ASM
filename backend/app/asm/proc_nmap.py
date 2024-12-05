@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Pythonパッケージ「python-nmap」との競合を防ぐためファイル名をproc_nmap.pyとしている
 from nmap import PortScanner
-import config as Config
 from context import Context
 from log import Level
 
@@ -9,10 +8,10 @@ def ProcNmap(context: Context) -> PortScanner:
 	context.logger.Log(Level.INFO, f"[Nmap] Scanning with Nmap...")
 	nm = PortScanner()
 	extraArgs = ["-sV"]
-	if len(Config.ExcludeHosts) > 0:
+	if len(context.config.exclude_hosts) > 0:
 		extraArgs.append("--exclude")
-		extraArgs.append(str.join(",", Config.ExcludeHosts))
-	extraArgs += Config.NmapExtraArgs
+		extraArgs.append(str.join(",", context.config.exclude_hosts))
+	extraArgs += context.config.nmap_extra_args
 
 	try:
 		# Nmap XML出力モード(-oX)の結果をそのまま書き込む

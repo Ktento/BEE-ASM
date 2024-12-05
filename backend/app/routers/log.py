@@ -3,13 +3,22 @@ from datetime import datetime, timezone
 from uuid import UUID
 from fastapi import Depends, APIRouter, Response
 from fastapi.exceptions import HTTPException
+from fastapi.params import Param
 from log import Level
+from routers.session import ensure_session
 from schemes.config import ConfigModel
 from schemes.session import SessionModel
 from schemes.log import LogModel
 from singleton import SessionManager
+from session import Session
 
 router = APIRouter(tags=["ログ"])
+
+
+def ensure_log_level(level: str = Level.ALL.__str__()) -> Level:
+	if level not in Level.__members__:
+		raise HTTPException(422, "invalid_log_level")
+	return Level[level]
 
 
 @router.get(
@@ -19,11 +28,11 @@ router = APIRouter(tags=["ログ"])
 	}
 )
 def show_by_date(
-	session_id: UUID,
+	session: Session = Depends(ensure_session),
 	since: datetime = datetime(1970, 1, 1, tzinfo=timezone.utc),
 	until: datetime = datetime(2100, 1, 1, tzinfo=timezone.utc),
 	limit: int = -1,
-	level: str = Level.ALL.__str__()
+	level: Level = Depends(ensure_log_level)
 ) -> list[LogModel]:
 	"""タイムスタンプからログを抽出します。
 
@@ -46,18 +55,12 @@ def show_by_date(
 	のようになります。
 
 	結果はタイムスタンプの昇順になります。"""
-	if level not in Level.__members__:
-		raise HTTPException(422, "invalid_log_level")
 	if since.tzinfo is None or until.tzinfo is None:
 		raise HTTPException(422, "timestamp_must_have_timezone")
-	lv: Level = Level[level]
-	s = SessionManager().find_session(session_id)
-	if s is None:
-		raise HTTPException(404, "session_not_found")
 	# loggerのログはすでにタイムスタンプの昇順でソートされていると思われるが
 	# ここでは念のために再ソートしておく
-	logs = sorted(s.logger.logs, key=lambda x: x.date)
+	logs = sorted(session.logger.logs, key=lambda x: x.date)
 	return \
-		[LogModel.from_log(i) for i in logs if since <= i.date and i.date < until and i.level.value <= lv.value] \
+		[LogModel.from_log(i) for i in logs if since <= i.date and i.date < until and i.level.value <= level.value] \
 		if limit < 0 else \
-		[LogModel.from_log(i) for i in logs if since <= i.date and i.date < until and i.level.value <= lv.value][:limit]
+		[LogModel.from_log(i) for i in logs if since <= i.date and i.date < until and i.level.value <= level.value][:limit]

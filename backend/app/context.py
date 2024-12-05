@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 from log import Logger
 from schemes.config import ConfigModel
+from session import Session
 
 class Context:
-	def __init__(self, logger: Logger, savedir: str, hosts: list, config: ConfigModel | None) -> None:
+	def __init__(self, logger: Logger, savedir: str, hosts: list, config: ConfigModel, session: Session) -> None:
 		self.__savedir = savedir
 		self.__logger = logger
 		self.__hosts = hosts
 		self.__config = config
+		self.__session = session
 
 	@property
 	def savedir(self): return self.__savedir
@@ -26,3 +28,6 @@ class Context:
 
 	@config.setter
 	def config(self, value): self.__config = value
+
+	@property
+	def session(self): return self.__session
