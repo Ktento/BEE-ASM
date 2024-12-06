@@ -348,20 +348,16 @@ class ProcReport:
 			# (表内テキストでは-1と0を区別できるようにするために収める前の値を設定する)
 			score = min(10.0, max(0.0, score))
 			# CVSS3の色付け
-			# スコアが高いほどhighの色に、低いほどlowの色に寄っていく
-			high = 0xcc0000  # 赤
-			low = 0xffffff   # 白
-			# 背景色。RGBそれぞれ分けて計算する。分けないとおかしな結果になる
-			bgColor = str.format("{:02x}{:02x}{:02x}",
-				int(((high >> 16) & 0xff) * (score / 10.0)) + int(((low >> 16) & 0xff) * (1 - (score / 10.0))),
-				int(((high >>  8) & 0xff) * (score / 10.0)) + int(((low >>  8) & 0xff) * (1 - (score / 10.0))),
-				int(((high >>  0) & 0xff) * (score / 10.0)) + int(((low >>  0) & 0xff) * (1 - (score / 10.0)))
-			)
+			bgColor = "ffffff"  # デフォルト。白
+			if 9.0 <= score: bgColor = "f41907"    # 赤
+			elif 7.0 <= score: bgColor = "f66e0b"  # 橙
+			elif 4.0 <= score: bgColor = "fbbc04"  # 黄
+			elif 0.1 <= score: bgColor = "21b803"  # 緑
 			# 前景色
-			fgColor = "#ffffff" if score >= 8.0 else "#000000"
+			fgColor = "000000"
 
 			# CSS
-			cvss3.attrib["style"] = f"background-color: #{bgColor}; color: {fgColor}; text-align: right;"
+			cvss3.attrib["style"] = f"background-color: #{bgColor}; color: #{fgColor}; text-align: right;"
 
 			t = (cveId, cvss3, cveDesc, published, extra)
 			if cve["cpe"] in dic:
