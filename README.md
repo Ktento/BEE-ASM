@@ -51,7 +51,6 @@ python3 -m uvicorn fastapi_main:app --port <ポート番号> --reload
 
 	"report_emails": ["報告先のEメールアドレス@example.com"],
 	"report_limit": 2,
-	"report_since_": "1970-01-01T00:00:00",
 	"report_since": "2019-12-05T19:05:00",
 	"report_min_cvss3": 7,
 	"report_csv_encoding": "utf-8",
@@ -79,13 +78,14 @@ curl -sSL "http://<バックエンドサーバーのホスト>/session/create" -
 
 例:
 ```bash
-curl -sSLG -d session_id="<セッションID>" "http://<ホスト>/asm/execute" -X POST | jq .
+curl -sSL "http://<ホスト>/asm/execute" -X POST -H "Content-Type: application/json" -d "{\"session_id\": \"<セッションID>\"}" | jq .
 ```
 
 #### 進捗状況の確認
 `/progress/show`宛に`GET`リクエストを発行することで確認できます。
 Nmap, CVE検索といった各タスクの進捗状況は`task_progresses`で、全体の進捗状況は`overall_progress`で確認できます。
-進捗状況の値は`0.0`以上`1.0`以下の実数で、数値が高いほどその分処理が終了していることを示します。例えば`0.0`の場合0%、`0.5`の場合50%、`1.0`の場合100%処理が完了しています。
+進捗状況の値は`0.0`以上`1.0`以下の実数で、数値が高いほどその分処理が終了していることを示します。
+例えば`0.0`の場合0%、`0.5`の場合50%、`1.0`の場合100%処理が完了しています。
 
 例:
 ```bash
