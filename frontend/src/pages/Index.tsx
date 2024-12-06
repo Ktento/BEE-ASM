@@ -1,10 +1,8 @@
-import { Box, Button, FormControl, Heading, Input } from "@yamada-ui/react";
-import { useState } from "react";
+import { Box, Button, Heading } from "@yamada-ui/react";
 import ConfigPanel from "../components/ConfigPanel";
 import { useNavigate } from "react-router-dom";
 
 function Index() {
-  const [domain, setDomain] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
@@ -25,14 +23,6 @@ function Index() {
       <Heading>ASM Tool</Heading>
       <Box as={"div"} p={5}>
         <form onSubmit={handleSubmit}>
-          <FormControl label="対象ドメイン" py={5}>
-            <Input
-              placeholder="domain"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              width={"70%"}
-            />
-          </FormControl>
           <ConfigPanel />
 
           <Box display={"flex"} justifyContent={"end"}>

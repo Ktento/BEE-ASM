@@ -44,6 +44,22 @@ function ConfigPanel() {
     <Box py={4}>
       <Accordion multiple={true}>
         <AccordionItem label="全体設定">
+          <FormControl label="対象ホスト名" py={5}>
+            <Input
+              placeholder="domain"
+              value={config.target_hosts}
+              onChange={() => setConfig({ ...config })} // TODO: 配列化
+              width={"70%"}
+            />
+          </FormControl>
+          <FormControl label="除外ホスト名" py={5}>
+            <Input
+              placeholder="exclude_hosts"
+              value={config.exclude_hosts}
+              onChange={() => setConfig({ ...config })} // TODO: 配列化
+              width={"70%"}
+            />
+          </FormControl>
           <ConfigCard
             content={
               <Checkbox
