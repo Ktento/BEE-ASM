@@ -11,28 +11,34 @@ import {
 import { useState } from "react";
 import { SearchRegion } from "../types/enums/SearchRegion";
 import ConfigCard from "./ConfigCard";
+import { Config } from "../types/enums/domain/config";
 
-function Config() {
-  const [enableColor, setEnableColor] = useState(false);
-  const [enableSubfinder, setEnableSubfinder] = useState(false);
-  const [enableReporting, setEnableReporting] = useState(false);
-  const [enableBCC, setEnableBCC] = useState(false);
-  const [email, setEmail] = useState<string | undefined>(undefined);
-  const [enableGemini, setEnableGemini] = useState(false);
-  const [geminiAPIKey, setGeminiAPIKey] = useState<string | undefined>(
-    undefined
-  );
-  const [enableNmap, setEnableNmap] = useState(false);
-  const [nmapArgs, setNmapArgs] = useState<string | undefined>(undefined);
-  const [enableWebSearch, setEnableWebSearch] = useState(false);
-  const [webQuery, setWebQuery] = useState<string | undefined>(undefined);
-  const [selectedRegion, setSelectedRegion] = useState<SearchRegion>(
-    SearchRegion.JP
-  );
-  const [webMaxResults, setWebMaxResults] = useState(50);
-  const [webBackend, setWebBackend] = useState("html");
-  const [enableSearchCVE, setEnableSearchCVE] = useState(false);
-  const [enableVAT, setEnableVAT] = useState(false);
+function ConfigPanel() {
+  const [config, setConfig] = useState<Config>({
+    target_hosts: [],
+    exclude_hosts: [],
+    color_output: false,
+    log_level: "",
+    enable_subfinder: false,
+    enable_reporting: false,
+    report_emails: [],
+    report_limit: 0,
+    report_since: "",
+    report_min_cvss3: 0,
+    report_csv_encoding: "",
+    report_enable_gemini: false,
+    report_api_key: "",
+    report_enable_bcc: false,
+    report_from: "",
+    enable_nmap: false,
+    nmap_extra_args: [],
+    search_web: false,
+    web_query: "",
+    web_region: "",
+    web_max_results: 0,
+    web_backend: "",
+    search_cve: false,
+  });
 
   return (
     <Box py={4}>
@@ -41,25 +47,24 @@ function Config() {
           <ConfigCard
             content={
               <Checkbox
-                isChecked={enableColor}
-                onChange={(e) => setEnableColor(e.target.checked)}
+                isChecked={config.color_output}
+                onChange={(e) =>
+                  setConfig({ ...config, color_output: e.target.checked })
+                }
               >
                 標準出力の色付けを有効にしますか?
               </Checkbox>
             }
           />
-          {/**
-           * 追加するもの
-           * 除外するホストやネットワーク範囲
-           * 出力するログのレベル
-           */}
         </AccordionItem>
         <AccordionItem label="subfinder設定">
           <ConfigCard
             content={
               <Checkbox
-                isChecked={enableSubfinder}
-                onChange={(e) => setEnableSubfinder(e.target.checked)}
+                isChecked={config.enable_subfinder}
+                onChange={(e) =>
+                  setConfig({ ...config, enable_subfinder: e.target.checked })
+                }
               >
                 subfinderを使用しますか?
               </Checkbox>
@@ -71,16 +76,23 @@ function Config() {
             content={
               <>
                 <Checkbox
-                  isChecked={enableReporting}
-                  onChange={(e) => setEnableReporting(e.target.checked)}
+                  isChecked={config.enable_reporting}
+                  onChange={(e) =>
+                    setConfig({ ...config, enable_reporting: e.target.checked })
+                  }
                 >
                   レポート機能を利用しますか?
                 </Checkbox>
-                {enableReporting && (
+                {config.enable_reporting && (
                   <Box px={8}>
                     <Checkbox
-                      isChecked={enableBCC}
-                      onChange={(e) => setEnableBCC(e.target.checked)}
+                      isChecked={config.report_enable_bcc}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          report_enable_bcc: e.target.checked,
+                        })
+                      }
                     >
                       CCの代わりにBCCを使用しますか？
                     </Checkbox>
@@ -88,8 +100,12 @@ function Config() {
                       <Input
                         type="email"
                         placeholder="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={config.report_emails}
+                        onChange={() =>
+                          setConfig({
+                            ...config, // TODO: 配列化
+                          })
+                        }
                         width={"auto"}
                       />
                     </FormControl>
@@ -104,24 +120,16 @@ function Config() {
             content={
               <>
                 <Checkbox
-                  isChecked={enableGemini}
-                  onChange={(e) => setEnableGemini(e.target.checked)}
+                  isChecked={config.report_enable_gemini}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      report_enable_gemini: e.target.checked,
+                    })
+                  }
                 >
                   Geminiによる分析を使用しますか?
                 </Checkbox>
-                {enableGemini && (
-                  <Box px={8}>
-                    <FormControl label="GeminiのAPIキー">
-                      <Input
-                        type="text"
-                        placeholder="Gemini API key"
-                        value={geminiAPIKey}
-                        onChange={(e) => setGeminiAPIKey(e.target.value)}
-                        width={"auto"}
-                      />
-                    </FormControl>
-                  </Box>
-                )}
               </>
             }
           />
@@ -131,19 +139,26 @@ function Config() {
             content={
               <>
                 <Checkbox
-                  isChecked={enableNmap}
-                  onChange={(e) => setEnableNmap(e.target.checked)}
+                  isChecked={config.enable_nmap}
+                  onChange={(e) =>
+                    setConfig({ ...config, enable_nmap: e.target.checked })
+                  }
                 >
                   Nmapを使用しますか?
                 </Checkbox>
-                {enableNmap && (
+                {config.enable_nmap && (
                   <Box px={8}>
                     <FormControl label="Nmapの引数">
                       <Input
                         type="text"
                         placeholder="nmap arguments"
-                        value={nmapArgs}
-                        onChange={(e) => setNmapArgs(e.target.value)}
+                        value={config.nmap_extra_args}
+                        onChange={() =>
+                          setConfig({
+                            ...config,
+                            // TODO: 配列化
+                          })
+                        }
                         width={"auto"}
                       />
                     </FormControl>
@@ -158,25 +173,32 @@ function Config() {
             content={
               <>
                 <Checkbox
-                  isChecked={enableWebSearch}
-                  onChange={(e) => setEnableWebSearch(e.target.checked)}
+                  isChecked={config.search_web}
+                  onChange={(e) =>
+                    setConfig({ ...config, search_web: e.target.checked })
+                  }
                 >
                   Web検索機能を使用しますか?
                 </Checkbox>
-                {enableWebSearch && (
+                {config.search_web && (
                   <Box px={8}>
                     <FormControl label="検索クエリ">
                       <Input
                         type="text"
                         placeholder="search query"
-                        value={webQuery}
-                        onChange={(e) => setWebQuery(e.target.value)}
+                        value={config.web_query}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            web_query: e.target.value,
+                          })
+                        }
                         width={"auto"}
                       />
                     </FormControl>
                     <RadioGroup
-                      value={selectedRegion}
-                      onChange={(e) => setSelectedRegion(e as SearchRegion)}
+                      value={config.web_region}
+                      onChange={() => setConfig({ ...config })} // TODO: set region
                     >
                       <Radio value={SearchRegion.JP}>日本</Radio>
                     </RadioGroup>
@@ -184,9 +206,12 @@ function Config() {
                       <Input
                         type="number"
                         placeholder="max results"
-                        value={webMaxResults}
+                        value={config.web_max_results}
                         onChange={(e) =>
-                          setWebMaxResults(parseInt(e.target.value))
+                          setConfig({
+                            ...config,
+                            web_max_results: parseInt(e.target.value),
+                          })
                         }
                         width={"auto"}
                       />
@@ -195,8 +220,10 @@ function Config() {
                       <Input
                         type="text"
                         placeholder="web backend"
-                        value={webBackend}
-                        onChange={(e) => setWebBackend(e.target.value)}
+                        value={config.web_backend}
+                        onChange={(e) =>
+                          setConfig({ ...config, web_backend: e.target.value })
+                        }
                         width={"auto"}
                       />
                     </FormControl>
@@ -210,22 +237,12 @@ function Config() {
           <ConfigCard
             content={
               <Checkbox
-                isChecked={enableSearchCVE}
-                onChange={(e) => setEnableSearchCVE(e.target.checked)}
+                isChecked={config.search_cve}
+                onChange={(e) =>
+                  setConfig({ ...config, search_cve: e.target.checked })
+                }
               >
                 CVE検索機能を使用しますか?
-              </Checkbox>
-            }
-          />
-        </AccordionItem>
-        <AccordionItem label="脆弱性診断設定">
-          <ConfigCard
-            content={
-              <Checkbox
-                isChecked={enableVAT}
-                onChange={(e) => setEnableVAT(e.target.checked)}
-              >
-                脆弱性診断を使用しますか?
               </Checkbox>
             }
           />
@@ -235,4 +252,4 @@ function Config() {
   );
 }
 
-export default Config;
+export default ConfigPanel;

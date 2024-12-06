@@ -1,6 +1,6 @@
 import { Box, Button, FormControl, Heading, Input } from "@yamada-ui/react";
 import { useState } from "react";
-import Config from "../components/Config";
+import ConfigPanel from "../components/ConfigPanel";
 import { useNavigate } from "react-router-dom";
 
 function Index() {
@@ -33,7 +33,7 @@ function Index() {
               width={"70%"}
             />
           </FormControl>
-          <Config />
+          <ConfigPanel />
 
           <Box display={"flex"} justifyContent={"end"}>
             <Button type="submit" colorScheme="purple" variant="outline">
