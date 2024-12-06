@@ -2,70 +2,93 @@ import {
   Accordion,
   AccordionItem,
   Box,
+  Button,
   Checkbox,
   FormControl,
   Input,
   Radio,
   RadioGroup,
 } from "@yamada-ui/react";
-import { useState } from "react";
 import { SearchRegion } from "../types/enums/SearchRegion";
 import ConfigCard from "./ConfigCard";
 import { Config } from "../types/enums/domain/config";
 
-function ConfigPanel() {
-  const [config, setConfig] = useState<Config>({
-    target_hosts: [], // TODO
-    exclude_hosts: [], // TODO
-    color_output: false,
-    log_level: "", // TODO
-    enable_subfinder: false,
-    enable_reporting: false,
-    report_emails: [],
-    report_limit: 0,
-    report_since: "",
-    report_min_cvss3: 0,
-    report_csv_encoding: "",
-    report_enable_gemini: false,
-    report_api_key: "",
-    report_enable_bcc: false,
-    report_from: "",
-    enable_nmap: false,
-    nmap_extra_args: [],
-    search_web: false,
-    web_query: "",
-    web_region: "",
-    web_max_results: 0,
-    web_backend: "",
-    search_cve: false,
-  });
+interface Props {
+  config: Config;
+  setConfig: React.Dispatch<React.SetStateAction<Config>>;
+}
+
+function ConfigPanel(props: Props) {
+  const handleAddTargetHost = () => {
+    props.setConfig({
+      ...props.config,
+      target_hosts: [...props.config.target_hosts, ""],
+    });
+  };
+
+  const handleChangeTargetHost = (index: number, value: string) => {
+    const newHosts = [...props.config.target_hosts];
+    newHosts[index] = value;
+    props.setConfig({ ...props.config, target_hosts: newHosts });
+  };
+
+  const handleAddExcludeHost = () => {
+    props.setConfig({
+      ...props.config,
+      exclude_hosts: [...props.config.exclude_hosts, ""],
+    });
+  };
+
+  const handleChangeExcludeHost = (index: number, value: string) => {
+    const newHosts = [...props.config.exclude_hosts];
+    newHosts[index] = value;
+    props.setConfig({ ...props.config, exclude_hosts: newHosts });
+  };
 
   return (
     <Box py={4}>
       <Accordion multiple={true}>
         <AccordionItem label="全体設定">
           <FormControl label="対象ホスト名" py={5}>
-            <Input
-              placeholder="domain"
-              value={config.target_hosts}
-              onChange={() => setConfig({ ...config })} // TODO: 配列化
-              width={"70%"}
-            />
+            {props.config.target_hosts.map((host, index) => (
+              <Box key={index} alignItems={"center"} mb={2}>
+                <Input
+                  placeholder="domain"
+                  value={host}
+                  onChange={(e) =>
+                    handleChangeTargetHost(index, e.target.value)
+                  }
+                  width={"70%"}
+                />
+              </Box>
+            ))}
+            <Button onClick={handleAddTargetHost}>+</Button>
           </FormControl>
           <FormControl label="除外ホスト名" py={5}>
-            <Input
-              placeholder="exclude_hosts"
-              value={config.exclude_hosts}
-              onChange={() => setConfig({ ...config })} // TODO: 配列化
-              width={"70%"}
-            />
+            {props.config.exclude_hosts.map((host, index) => (
+              <Box key={index} display="flex" alignItems="center" mb={2}>
+                <Input
+                  placeholder="exclude_hosts"
+                  value={host}
+                  onChange={(e) =>
+                    handleChangeExcludeHost(index, e.target.value)
+                  }
+                  width={"70%"}
+                  mr={2}
+                />
+              </Box>
+            ))}
+            <Button onClick={handleAddExcludeHost}>+</Button>
           </FormControl>
           <ConfigCard
             content={
               <Checkbox
-                isChecked={config.color_output}
+                isChecked={props.config.color_output}
                 onChange={(e) =>
-                  setConfig({ ...config, color_output: e.target.checked })
+                  props.setConfig({
+                    ...props.config,
+                    color_output: e.target.checked,
+                  })
                 }
               >
                 標準出力の色付けを有効にしますか?
@@ -77,9 +100,12 @@ function ConfigPanel() {
           <ConfigCard
             content={
               <Checkbox
-                isChecked={config.enable_subfinder}
+                isChecked={props.config.enable_subfinder}
                 onChange={(e) =>
-                  setConfig({ ...config, enable_subfinder: e.target.checked })
+                  props.setConfig({
+                    ...props.config,
+                    enable_subfinder: e.target.checked,
+                  })
                 }
               >
                 subfinderを使用しますか?
@@ -92,23 +118,26 @@ function ConfigPanel() {
             content={
               <>
                 <Checkbox
-                  isChecked={config.enable_reporting}
+                  isChecked={props.config.enable_reporting}
                   onChange={(e) =>
-                    setConfig({ ...config, enable_reporting: e.target.checked })
+                    props.setConfig({
+                      ...props.config,
+                      enable_reporting: e.target.checked,
+                    })
                   }
                 >
                   レポート機能を利用しますか?
                 </Checkbox>
-                {config.enable_reporting && (
+                {props.config.enable_reporting && (
                   <Box px={8}>
                     <FormControl label="調査開始期間">
                       <Input
                         type="since"
                         placeholder="1970-01-01T00:00:00"
-                        value={config.report_since}
+                        value={props.config.report_since}
                         onChange={(e) =>
-                          setConfig({
-                            ...config,
+                          props.setConfig({
+                            ...props.config,
                             report_since: e.target.value,
                           })
                         }
@@ -116,10 +145,10 @@ function ConfigPanel() {
                       />
                     </FormControl>
                     <Checkbox
-                      isChecked={config.report_enable_bcc}
+                      isChecked={props.config.report_enable_bcc}
                       onChange={(e) =>
-                        setConfig({
-                          ...config,
+                        props.setConfig({
+                          ...props.config,
                           report_enable_bcc: e.target.checked,
                         })
                       }
@@ -130,10 +159,10 @@ function ConfigPanel() {
                       <Input
                         type="email"
                         placeholder="email"
-                        value={config.report_emails}
+                        value={props.config.report_emails}
                         onChange={() =>
-                          setConfig({
-                            ...config, // TODO: 配列化
+                          props.setConfig({
+                            ...props.config, // TODO: 配列化
                           })
                         }
                         width={"auto"}
@@ -142,10 +171,10 @@ function ConfigPanel() {
                     <FormControl label="Geminiにレビューさせる件数">
                       <Input
                         type="件数"
-                        value={config.report_limit}
+                        value={props.config.report_limit}
                         onChange={(e) =>
-                          setConfig({
-                            ...config,
+                          props.setConfig({
+                            ...props.config,
                             report_limit: parseInt(e.target.value),
                           })
                         }
@@ -163,10 +192,10 @@ function ConfigPanel() {
             content={
               <>
                 <Checkbox
-                  isChecked={config.report_enable_gemini}
+                  isChecked={props.config.report_enable_gemini}
                   onChange={(e) =>
-                    setConfig({
-                      ...config,
+                    props.setConfig({
+                      ...props.config,
                       report_enable_gemini: e.target.checked,
                     })
                   }
@@ -182,23 +211,26 @@ function ConfigPanel() {
             content={
               <>
                 <Checkbox
-                  isChecked={config.enable_nmap}
+                  isChecked={props.config.enable_nmap}
                   onChange={(e) =>
-                    setConfig({ ...config, enable_nmap: e.target.checked })
+                    props.setConfig({
+                      ...props.config,
+                      enable_nmap: e.target.checked,
+                    })
                   }
                 >
                   Nmapを使用しますか?
                 </Checkbox>
-                {config.enable_nmap && (
+                {props.config.enable_nmap && (
                   <Box px={8}>
                     <FormControl label="Nmapの引数">
                       <Input
                         type="text"
                         placeholder="nmap arguments"
-                        value={config.nmap_extra_args}
+                        value={props.config.nmap_extra_args}
                         onChange={() =>
-                          setConfig({
-                            ...config,
+                          props.setConfig({
+                            ...props.config,
                             // TODO: 配列化
                           })
                         }
@@ -216,23 +248,26 @@ function ConfigPanel() {
             content={
               <>
                 <Checkbox
-                  isChecked={config.search_web}
+                  isChecked={props.config.search_web}
                   onChange={(e) =>
-                    setConfig({ ...config, search_web: e.target.checked })
+                    props.setConfig({
+                      ...props.config,
+                      search_web: e.target.checked,
+                    })
                   }
                 >
                   Web検索機能を使用しますか?
                 </Checkbox>
-                {config.search_web && (
+                {props.config.search_web && (
                   <Box px={8}>
                     <FormControl label="検索クエリ">
                       <Input
                         type="text"
                         placeholder="search query"
-                        value={config.web_query}
+                        value={props.config.web_query}
                         onChange={(e) =>
-                          setConfig({
-                            ...config,
+                          props.setConfig({
+                            ...props.config,
                             web_query: e.target.value,
                           })
                         }
@@ -240,8 +275,8 @@ function ConfigPanel() {
                       />
                     </FormControl>
                     <RadioGroup
-                      value={config.web_region}
-                      onChange={() => setConfig({ ...config })} // TODO: set region
+                      value={props.config.web_region}
+                      onChange={() => props.setConfig({ ...props.config })} // TODO: set region
                     >
                       <Radio value={SearchRegion.JP}>日本</Radio>
                     </RadioGroup>
@@ -249,10 +284,10 @@ function ConfigPanel() {
                       <Input
                         type="number"
                         placeholder="max results"
-                        value={config.web_max_results}
+                        value={props.config.web_max_results}
                         onChange={(e) =>
-                          setConfig({
-                            ...config,
+                          props.setConfig({
+                            ...props.config,
                             web_max_results: parseInt(e.target.value),
                           })
                         }
@@ -263,9 +298,12 @@ function ConfigPanel() {
                       <Input
                         type="text"
                         placeholder="web backend"
-                        value={config.web_backend}
+                        value={props.config.web_backend}
                         onChange={(e) =>
-                          setConfig({ ...config, web_backend: e.target.value })
+                          props.setConfig({
+                            ...props.config,
+                            web_backend: e.target.value,
+                          })
                         }
                         width={"auto"}
                       />
@@ -280,9 +318,12 @@ function ConfigPanel() {
           <ConfigCard
             content={
               <Checkbox
-                isChecked={config.search_cve}
+                isChecked={props.config.search_cve}
                 onChange={(e) =>
-                  setConfig({ ...config, search_cve: e.target.checked })
+                  props.setConfig({
+                    ...props.config,
+                    search_cve: e.target.checked,
+                  })
                 }
               >
                 CVE検索機能を使用しますか?
