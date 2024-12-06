@@ -18,7 +18,7 @@ class Context:
 	def logger(self): return self.__logger
 
 	@property
-	def hosts(self): return  self.__hosts
+	def hosts(self): return self.__hosts
 
 	@hosts.setter
 	def hosts(self, value): self.__hosts = value

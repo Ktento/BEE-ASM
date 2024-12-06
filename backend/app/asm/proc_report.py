@@ -67,8 +67,8 @@ class ProcReport:
 				"CVEID": cve["id"],
 				"CVSS3": str.format("{:.1f}", cve["cvss3"]),
 				"CVSS": str.format("{:.1f}", cve["cvss"]),
-				"Published":  cve["published_str"],
-				"Description":  cve["summary"],
+				"Published": cve["published_str"],
+				"Description": cve["summary"],
 				"Gemini": cve["gemini"],
 			}
 			wa.writerow(d)
@@ -98,7 +98,7 @@ class ProcReport:
 		mail_title = "ASMツール実行のお知らせ"
 		message = body
 
-		#  MIMEオブジェクトでメールを作成
+		# MIMEオブジェクトでメールを作成
 		msg = MIMEMultipart()
 		msg["Subject"] = mail_title
 		msg["From"] = from_email
