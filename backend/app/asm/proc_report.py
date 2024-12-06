@@ -240,14 +240,57 @@ class ProcReport:
 	<html>
 		<head>
 			<meta charset="UTF-8" />
-			<title>lorem</title>
+			<title>ASM report</title>
 			<meta name="viewport" content="width=device-width, initial-scale=1" />
+			<style>
+				body {{
+					background-color: white;
+					color: black;
+				}}
+				table {{
+					width: 1800px;
+					border: solid 2px #1da1f2;
+					border-collapse: collapse;
+				}}
+				tr {{
+					backgroundc-color: white;
+				}}
+				tr:nth-child(even) {{
+					background-color: #f6f6f6;
+				}}
+				th {{
+					border-left: solid 1px white;
+					border-right: solid 1px white;
+					border-bottom: solid 1px #1da1f2;
+				}}
+				td {{
+					border: solid 1px #aaa;
+					padding: 2px 3px;
+				}}
+				th {{
+					background-color: #1da1f2;
+					background-image: linear-gradient(#1da1f2, #6ac0f6);
+					background-image: linear-gradient(0deg, #6ac0f6 0%, #1da1f2 50%, #35aaf3 50%, #1da1f2 100%);
+					text-shadow: 0px 1px 4px black;
+					color: white;
+				}}
+				h1 {{
+					padding: 3px 10px;
+					background-color: #6ac0f6;
+					background-image: linear-gradient(#6ac0f6, white);
+				}}
+				h2 {{
+					border-left: solid 10px #1da1f2;
+					padding-left: 10px;
+				}}
+			</style>
 		</head>
 		<body>
 			<h1>ASM レポート</h1>
 	{extra}
-			<h2>全ホスト</h2>
-			<table border="1">
+			<p>ジャンプ: <a href="#allhostshdr">全ホスト</a> | <a href="#perhostshdr">ホスト別</a></p>
+			<h2 id="allhostshdr">全ホスト</h2>
+			<table border="1" cellspacing="0" cellpadding="0">
 				<thead>
 					<tr>
 						<th>CPE文字列</th>
@@ -261,8 +304,8 @@ class ProcReport:
 				<tbody id="allhosts">
 				</tbody>
 			</table>
-			<h2>ホスト別</h2>
-			<table border="1">
+			<h2 id="perhostshdr">ホスト別</h2>
+			<table border="1" cellspacing="0" cellpadding="0">
 				<thead>
 					<tr>
 						<th>ホスト</th>
