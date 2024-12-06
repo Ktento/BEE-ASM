@@ -51,7 +51,6 @@ python3 -m uvicorn fastapi_main:app --port <ポート番号> --reload
 
 	"report_emails": ["報告先のEメールアドレス@example.com"],
 	"report_limit": 2,
-	"report_since_": "1970-01-01T00:00:00",
 	"report_since": "2019-12-05T19:05:00",
 	"report_min_cvss3": 7,
 	"report_csv_encoding": "utf-8",
