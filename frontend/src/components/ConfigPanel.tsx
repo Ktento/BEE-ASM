@@ -15,10 +15,10 @@ import { Config } from "../types/enums/domain/config";
 
 function ConfigPanel() {
   const [config, setConfig] = useState<Config>({
-    target_hosts: [],
-    exclude_hosts: [],
+    target_hosts: [], // TODO
+    exclude_hosts: [], // TODO
     color_output: false,
-    log_level: "",
+    log_level: "", // TODO
     enable_subfinder: false,
     enable_reporting: false,
     report_emails: [],
@@ -85,6 +85,20 @@ function ConfigPanel() {
                 </Checkbox>
                 {config.enable_reporting && (
                   <Box px={8}>
+                    <FormControl label="調査開始期間">
+                      <Input
+                        type="since"
+                        placeholder="1970-01-01T00:00:00"
+                        value={config.report_since}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            report_since: e.target.value,
+                          })
+                        }
+                        width={"auto"}
+                      />
+                    </FormControl>
                     <Checkbox
                       isChecked={config.report_enable_bcc}
                       onChange={(e) =>
@@ -104,6 +118,19 @@ function ConfigPanel() {
                         onChange={() =>
                           setConfig({
                             ...config, // TODO: 配列化
+                          })
+                        }
+                        width={"auto"}
+                      />
+                    </FormControl>
+                    <FormControl label="Geminiにレビューさせる件数">
+                      <Input
+                        type="件数"
+                        value={config.report_limit}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            report_limit: parseInt(e.target.value),
                           })
                         }
                         width={"auto"}
