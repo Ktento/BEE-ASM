@@ -262,17 +262,15 @@ class ProcReport:
 					border-left: solid 1px white;
 					border-right: solid 1px white;
 					border-bottom: solid 1px #1da1f2;
-				}}
-				td {{
-					border: solid 1px #aaa;
-					padding: 2px 3px;
-				}}
-				th {{
 					background-color: #1da1f2;
 					background-image: linear-gradient(#1da1f2, #6ac0f6);
 					background-image: linear-gradient(0deg, #6ac0f6 0%, #1da1f2 50%, #35aaf3 50%, #1da1f2 100%);
 					text-shadow: 0px 1px 4px black;
 					color: white;
+				}}
+				td {{
+					border: solid 1px #aaa;
+					padding: 2px 3px;
 				}}
 				h1 {{
 					padding: 3px 10px;
