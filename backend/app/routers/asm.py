@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks
 from fastapi.exceptions import HTTPException
 
 from asm.asm import Asm
 from routers.session import ensure_session
 from schemes.progress import ProgressModel
-from session import Session
+from schemes.sessionid import SessionIdModel
 
 router = APIRouter(tags=["ASM"])
 
@@ -19,8 +19,10 @@ router = APIRouter(tags=["ASM"])
 )
 async def run_asm(
 	background_tasks: BackgroundTasks,
-	session: Session = Depends(ensure_session)
+	data: SessionIdModel
 ) -> ProgressModel:
+	session = ensure_session(data.session_id)
+
 	if session.progress is not None:
 		raise HTTPException(409, "asm_already_started")
 

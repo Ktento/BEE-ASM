@@ -78,7 +78,7 @@ curl -sSL "http://<バックエンドサーバーのホスト>/session/create" -
 
 例:
 ```bash
-curl -sSLG -d session_id="<セッションID>" "http://<ホスト>/asm/execute" -X POST | jq .
+curl -sSL "http://<ホスト>/asm/execute" -X POST -H "Content-Type: application/json" -d "{\"session_id\": \"<セッションID>\"}" | jq .
 ```
 
 #### 進捗状況の確認
