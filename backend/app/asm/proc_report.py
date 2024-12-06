@@ -253,7 +253,7 @@ class ProcReport:
 					border-collapse: collapse;
 				}}
 				tr {{
-					backgroundc-color: white;
+					background-color: white;
 				}}
 				tr:nth-child(even) {{
 					background-color: #f6f6f6;
