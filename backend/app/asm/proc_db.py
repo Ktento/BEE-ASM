@@ -5,7 +5,7 @@ from log import Level
 from context import Context
 
 #dbに接続する関数
-def connect_to_db(self,context: Context):
+def connect_to_db(context: Context):
     try:
         connection = psycopg2.connect(
             host=context.session.server_config.host,

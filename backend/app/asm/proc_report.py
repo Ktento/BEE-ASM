@@ -162,11 +162,10 @@ class ProcReport:
 		if self.__context.config.report_enable_gemini:
 			for c in cve_data_array[:self.__context.config.report_limit]:
 				try:
-					connection = DB.connect_to_db(self,context)
+					connection = DB.connect_to_db(context)
 					if connection:
 						#CVE_IDを元にDBに格納されているGeminiの説明を取得
 						result=DB.select_cve_ai(connection,c["id"])
-
 						if result:
 							c["gemini"]=result
 							DB.close_connection(connection)
@@ -174,7 +173,7 @@ class ProcReport:
 						else:
 							DB.close_connection(connection)
 							c["gemini"] = self.review_description(c["summary"])
-							
+
 				except Exception as e:
 					c["gemini"] = "(Failed)"
 
