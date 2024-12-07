@@ -3,7 +3,7 @@ import ConfigPanel from "../components/ConfigPanel";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Config } from "../types/enums/domain/config";
-import { CreateSessionReq } from "../types/enums/CreateSessionReq";
+import { CreateSessionRes } from "../types/enums/CreateSessionReq";
 
 function Index() {
   const [config, setConfig] = useState<Config>({
@@ -45,15 +45,26 @@ function Index() {
         body: JSON.stringify(config),
       });
 
-      if (res.ok) {
-        const data: CreateSessionReq = await res.json();
-        const sessionId = data.session_id;
-        console.log(sessionId);
+      if (!res.ok) return;
 
-        navigate("/success", { state: { sessionId } });
-      } else {
-        console.log("failed create session");
+      const data: CreateSessionRes = await res.json();
+      const sessionId = data.session_id;
+      console.log(sessionId);
+
+      const exeRes = await fetch(
+        `http://localhost:8000/asm/execute?session_id=${sessionId}`,
+        {
+          method: "POST",
+          headers: header,
+        }
+      );
+
+      if (!exeRes.ok) {
+        console.log("実行エラー");
+        return;
       }
+
+      navigate("/success", { state: { sessionId } });
     } catch (e) {
       console.log(e);
     }

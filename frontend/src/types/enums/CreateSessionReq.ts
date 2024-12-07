@@ -1,6 +1,6 @@
 import { Config } from "./domain/config";
 
-export type CreateSessionReq = {
+export type CreateSessionRes = {
   session_id: string;
   config: Config;
 };
