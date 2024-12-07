@@ -3,6 +3,7 @@ import ConfigPanel from "../components/ConfigPanel";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Config } from "../types/enums/domain/config";
+import { CreateSessionReq } from "../types/enums/CreateSessionReq";
 
 function Index() {
   const [config, setConfig] = useState<Config>({
@@ -14,7 +15,7 @@ function Index() {
     enable_reporting: false,
     report_emails: [],
     report_limit: 0,
-    report_since: "",
+    report_since: "1970-01-01T00:00:00",
     report_min_cvss3: 0,
     report_csv_encoding: "",
     report_enable_gemini: false,
@@ -35,13 +36,26 @@ function Index() {
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:8000/run-asm", {
-        method: "POST", // POSTメソッドを指定
+      const header = new Headers();
+      header.append("Content-Type", "application/json");
+
+      const res = await fetch("http://localhost:8000/session/create", {
+        method: "POST",
+        headers: header,
+        body: JSON.stringify(config),
       });
-      if (res.ok) navigate("/success");
-      console.log(res);
-    } catch (error) {
-      console.error("Error calling backend:", error);
+
+      if (res.ok) {
+        const data: CreateSessionReq = await res.json();
+        const sessionId = data.session_id;
+        console.log(sessionId);
+
+        navigate("/success", { state: { sessionId } });
+      } else {
+        console.log("failed create session");
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
 
