@@ -8,6 +8,7 @@ import smtplib
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+import asm.proc_db as DB
 
 import requests
 
