@@ -5,3 +5,4 @@ lxml
 configparser
 fastapi
 uvicorn[gunicorn]
+psycopg2
