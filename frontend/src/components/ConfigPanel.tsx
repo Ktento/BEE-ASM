@@ -11,7 +11,7 @@ import {
 } from "@yamada-ui/react";
 import { SearchRegion } from "../types/enums/SearchRegion";
 import ConfigCard from "./ConfigCard";
-import { Config } from "../types/enums/domain/config";
+import { Config } from "../types/Config";
 
 interface Props {
   config: Config;

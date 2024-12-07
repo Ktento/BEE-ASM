@@ -2,8 +2,8 @@ import { Box, Button, Heading } from "@yamada-ui/react";
 import ConfigPanel from "../components/ConfigPanel";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Config } from "../types/enums/domain/config";
-import { CreateSessionRes } from "../types/enums/CreateSessionReq";
+import { Config } from "../types/Config";
+import { CreateSessionRes } from "../types/CreateSessionReq";
 
 function Index() {
   const [config, setConfig] = useState<Config>({
@@ -32,6 +32,7 @@ function Index() {
     search_cve: false,
   });
   const navigate = useNavigate();
+  const ENDPOINT: string = import.meta.env.VITE_END_POINT;
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,7 +40,7 @@ function Index() {
       const header = new Headers();
       header.append("Content-Type", "application/json");
 
-      const res = await fetch("http://localhost:8000/session/create", {
+      const res = await fetch(`${ENDPOINT}/session/create`, {
         method: "POST",
         headers: header,
         body: JSON.stringify(config),
@@ -52,7 +53,7 @@ function Index() {
       console.log(sessionId);
 
       const exeRes = await fetch(
-        `http://localhost:8000/asm/execute?session_id=${sessionId}`,
+        `${ENDPOINT}/asm/execute?session_id=${sessionId}`,
         {
           method: "POST",
           headers: header,
