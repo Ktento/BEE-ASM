@@ -26,7 +26,6 @@ class ConfigModel(BaseModel):
 	report_min_cvss3: float = Field(7.0, description="レポートする最小のCVSS3スコア(しきい値)")
 	report_csv_encoding: str = Field("utf-8", description="レポートのCSVファイルの文字エンコーディング。設定値はそのままPythonの`open()`の`encoding`に渡される。そのためBOM付きUTF-8にしたい場合は`utf-8-sig`を指定する")
 	report_enable_gemini: bool = Field(False, description="Geminiによる分析を使用するか")
-	report_api_key: str = Field("", description="レポートに使うGemini Pro APIのキー")
 	report_enable_bcc: bool = Field(False, description="CCの代わりにBCCを使うか")
 	report_from: str = Field("", description="レポートのFromとして使うEメールアドレス")
 
