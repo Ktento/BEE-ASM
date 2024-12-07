@@ -8,7 +8,9 @@ import smtplib
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-
+import asm.proc_db as DB
+import psycopg2
+from psycopg2 import sql
 import requests
 
 from context import Context
@@ -18,7 +20,6 @@ class ProcReport:
 	__context: Context
 	def __init__(self, context: Context) -> None:
 		self.__context = context
-
 	def review_description(self, description):
 		# print(f"description: {description}")
 		API_KEY = self.__context.session.server_config._gemini_api_key
@@ -161,7 +162,18 @@ class ProcReport:
 		if self.__context.config.report_enable_gemini:
 			for c in cve_data_array[:self.__context.config.report_limit]:
 				try:
-					c["gemini"] = self.review_description(c["summary"])
+					connection = DB.connect_to_db(context)
+					if connection:
+						#CVE_IDを元にDBに格納されているGeminiの説明を取得
+						result=DB.select_cve_ai(connection,c["id"])
+						if result:
+							c["gemini"]=result
+							DB.close_connection(connection)
+						#接続できない　or 存在しない場合はGeminiにアクセス
+						else:
+							DB.close_connection(connection)
+							c["gemini"] = self.review_description(c["summary"])
+
 				except Exception as e:
 					c["gemini"] = "(Failed)"
 

@@ -3,3 +3,4 @@ requests
 fastapi
 uvicorn[gunicorn]
 pydantic
+psycopg2
