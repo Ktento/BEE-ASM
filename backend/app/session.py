@@ -23,7 +23,7 @@ class Session():
 	def __init__(self, config: ConfigModel):
 		self.__uuid = uuid4()
 		self.__conf = config
-		self.__server_conf = ServerConfigModel(version="0.1.0", cveapi_base="https://cvepremium.circl.lu/api")
+		self.__server_conf = ServerConfigModel()
 		self.__workdir = Path("work", str(self.__uuid))
 		self.__workdir.mkdir(parents=True, exist_ok=False)
 		self.__logger = Logger(filepath=str(self.__workdir / "log.txt"), user_config=self.__conf)
