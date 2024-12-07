@@ -97,15 +97,6 @@ class Asm:
 					# NmapはCPE文字列まで返してくれるのでそれを使う
 					cpes = set()
 
-					# python-nmap経由でCPE文字列を列挙する場合以下のようにすれば良い:
-					# for host in nm.all_hosts():
-					# 	for proto in nm[host].all_protocols():
-					# 		for port in nm[host][proto].keys():
-					# 			if "cpe" in nm[host][proto][port]:
-					# 				cpes.add(nm[host][proto][port]["cpe"])
-					# ただし、あるサービスに2つ以上のCPE文字列があると1つのみ返される
-					# そのため、ここでは代わりにNmapのXML出力からCPE文字列を取得することにする
-
 					# NmapのCPE文字列を修正
 					def fixcpe(input):
 						try:
@@ -117,7 +108,7 @@ class Asm:
 							return input
 
 					# Nmapが出力したXMLドキュメントから列挙する
-					elm = ET.fromstring(nm.get_nmap_last_output())
+					elm = ET.fromstring(nm)
 					xmlCpes = elm.findall("./host/ports/port/service/cpe")
 					for i in xmlCpes:
 						i.text = fixcpe(i.text)
