@@ -50,6 +50,7 @@ class Asm:
 		# 検査対象、および検査対象外のホストもログに残す
 		Log(Level.INFO, "Target hosts: " + str.join(", ", session.config.target_hosts))
 		Log(Level.INFO, "Excluded hosts (subfinder, Nmap): " + str.join(", ", session.config.exclude_hosts))
+		print(session.config)
 		# subfinder
 		if session.config.enable_subfinder:
 			try:
@@ -177,6 +178,7 @@ class Asm:
 				cveData.reverse()
 				# レポートする
 				Report.ProcReport(ctx).makereport(ctx, cveData, hostCpes, hostCpePorts)
+				
 			except Exception as e:
 				Log(Level.ERROR, f"[Report] Report failed: {e}")
 			finally:
