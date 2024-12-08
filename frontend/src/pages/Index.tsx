@@ -52,13 +52,13 @@ function Index() {
       const sessionId = data.session_id;
       console.log(sessionId);
 
-      const exeRes = await fetch(
-        `${ENDPOINT}/asm/execute?session_id=${sessionId}`,
-        {
-          method: "POST",
-          headers: header,
-        }
-      );
+      const exeRes = await fetch(`${ENDPOINT}/asm/execute`, {
+        method: "POST",
+        headers: header,
+        body: JSON.stringify({
+          session_id: sessionId,
+        }),
+      });
 
       if (!exeRes.ok) {
         console.log("実行エラー");
