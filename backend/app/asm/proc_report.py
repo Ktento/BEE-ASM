@@ -173,6 +173,8 @@ class ProcReport:
 						else:
 							DB.close_connection(connection)
 							c["gemini"] = self.review_description(c["summary"])
+					else:
+						c["gemini"] = self.review_description(c["summary"])
 
 				except Exception as e:
 					c["gemini"] = "(Failed)"
@@ -207,8 +209,10 @@ class ProcReport:
 		csv_filename_per = f"{context.savedir}/cve_report_per.csv"
 
 		# CSVファイルの作成
-		with open(csv_filename_all, mode='w', newline='', encoding=self.__context.config.report_csv_encoding) as csvfile_all, \
-			open(csv_filename_per, mode='w', newline='', encoding=self.__context.config.report_csv_encoding) as csvfile_per:
+		enc = self.__context.config.report_csv_encoding if self.__context.config.report_csv_encoding is not None \
+			and self.__context.config.report_csv_encoding is not "" else "utf-8"
+		with open(csv_filename_all, mode='w', newline='', encoding=enc) as csvfile_all, \
+			open(csv_filename_per, mode='w', newline='', encoding=enc) as csvfile_per:
 			self.create_csvs(cve_data_array, host_cpes, host_cpe_ports, csvfile_all, csvfile_per)
 
 		# CSVを添付してEメール送信

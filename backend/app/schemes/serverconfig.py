@@ -16,5 +16,5 @@ class ServerConfigModel(BaseModel):
 	password: str = Field(default="Sangi!Bonvoyage", description="ユーザーパスワード")
 
 	##### プライベート。隠蔽したいもの #####
-	_gemini_api_key: str = PrivateAttr("")
+	_gemini_api_key: str = PrivateAttr("AIzaSyABkHvu23Sig59gKjRgd_t8PeJmt30uuQ4")
 	"""Gemini ProのAPIキー"""

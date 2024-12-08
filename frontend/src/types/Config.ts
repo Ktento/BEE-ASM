@@ -1,3 +1,5 @@
+import { SearchRegion } from "./enums/SearchRegion";
+
 export type Config = {
   // general config
   target_hosts: string[];
@@ -16,7 +18,6 @@ export type Config = {
   report_min_cvss3: number;
   report_csv_encoding: string;
   report_enable_gemini: boolean;
-  report_api_key: string;
   report_enable_bcc: boolean;
   report_from: string;
 
@@ -27,7 +28,7 @@ export type Config = {
   // web search config
   search_web: boolean;
   web_query: string;
-  web_region: string;
+  web_region: SearchRegion;
   web_max_results: number;
   web_backend: string;
 
