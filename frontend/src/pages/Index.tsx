@@ -13,7 +13,7 @@ function Index() {
     log_level: "",
     enable_subfinder: false,
     enable_reporting: false,
-    report_emails: [],
+    report_emails: [""],
     report_limit: 0,
     report_since: "1970-01-01T00:00:00",
     report_min_cvss3: 0,
