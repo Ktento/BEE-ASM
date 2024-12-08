@@ -42,15 +42,14 @@ class Asm:
 		assert session.progress is not None
 
 		if session.config.enable_subfinder                         : session.progress.task_progresses["subfinder"] = 0.0
-		if session.config.enable_reporting                         : session.progress.task_progresses["reporting"] = 0.0
 		if session.config.enable_nmap                              : session.progress.task_progresses["nmap"] = 0.0
 		if session.config.search_web                               : session.progress.task_progresses["websearch"] = 0.0
 		if session.config.search_cve and session.config.enable_nmap: session.progress.task_progresses["cve"] = 0.0
+		if session.config.enable_reporting                         : session.progress.task_progresses["reporting"] = 0.0
 
 		# 検査対象、および検査対象外のホストもログに残す
 		Log(Level.INFO, "Target hosts: " + str.join(", ", session.config.target_hosts))
 		Log(Level.INFO, "Excluded hosts (subfinder, Nmap): " + str.join(", ", session.config.exclude_hosts))
-
 		# subfinder
 		if session.config.enable_subfinder:
 			try:

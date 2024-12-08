@@ -4,3 +4,4 @@ fastapi
 uvicorn[gunicorn]
 pydantic
 psycopg2
+lxml
