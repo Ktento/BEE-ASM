@@ -15,7 +15,7 @@ function Index() {
     enable_reporting: false,
     report_emails: [],
     report_limit: 0,
-    report_since: "1970-01-01T00:00:00",
+    report_since: "",
     report_min_cvss3: 0,
     report_csv_encoding: "",
     report_enable_gemini: false,
