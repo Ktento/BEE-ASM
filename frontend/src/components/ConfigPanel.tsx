@@ -8,10 +8,12 @@ import {
   Input,
   Radio,
   RadioGroup,
+  Text,
 } from "@yamada-ui/react";
 import { SearchRegion } from "../types/enums/SearchRegion";
 import ConfigCard from "./ConfigCard";
 import { Config } from "../types/Config";
+import { useState } from "react";
 
 interface Props {
   config: Config;
@@ -19,6 +21,30 @@ interface Props {
 }
 
 function ConfigPanel(props: Props) {
+  const [year, setYear] = useState(
+    props.config.report_since.slice(0, 4) || "1970"
+  );
+  const [month, setMonth] = useState(
+    props.config.report_since.slice(5, 7) || "01"
+  );
+  const [day, setDay] = useState(
+    props.config.report_since.slice(8, 10) || "01"
+  );
+
+  // 入力が変更されるたびにISO形式の日付を再構成して反映
+  const handleDateChange = (type: "year" | "month" | "day", value: string) => {
+    const updatedYear = type === "year" ? value : year;
+    const updatedMonth = type === "month" ? value.padStart(2, "0") : month;
+    const updatedDay = type === "day" ? value.padStart(2, "0") : day;
+
+    setYear(updatedYear);
+    setMonth(updatedMonth);
+    setDay(updatedDay);
+
+    const newDate = `${updatedYear}-${updatedMonth}-${updatedDay}T00:00:00`;
+    props.setConfig({ ...props.config, report_since: newDate });
+  };
+
   const handleAddTargetHost = () => {
     props.setConfig({
       ...props.config,
@@ -131,18 +157,45 @@ function ConfigPanel(props: Props) {
                 {props.config.enable_reporting && (
                   <Box px={8}>
                     <FormControl label="調査開始期間">
-                      <Input
-                        type="since"
-                        placeholder="1970-01-01T00:00:00"
-                        value={props.config.report_since}
-                        onChange={(e) =>
-                          props.setConfig({
-                            ...props.config,
-                            report_since: e.target.value,
-                          })
-                        }
-                        width={"auto"}
-                      />
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Box>
+                          <Text>年</Text>
+                          <Input
+                            type="number"
+                            value={year}
+                            onChange={(e) =>
+                              handleDateChange("year", e.target.value)
+                            }
+                            width="100px"
+                          />
+                        </Box>
+                        <Box>
+                          <Text>月</Text>
+                          <Input
+                            type="number"
+                            value={month}
+                            min={1}
+                            max={12}
+                            onChange={(e) =>
+                              handleDateChange("month", e.target.value)
+                            }
+                            width="70px"
+                          />
+                        </Box>
+                        <Box>
+                          <Text>日</Text>
+                          <Input
+                            type="number"
+                            value={day}
+                            min={1}
+                            max={31}
+                            onChange={(e) =>
+                              handleDateChange("day", e.target.value)
+                            }
+                            width="70px"
+                          />
+                        </Box>
+                      </Box>
                     </FormControl>
                     <Checkbox
                       isChecked={props.config.report_enable_bcc}
