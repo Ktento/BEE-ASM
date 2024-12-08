@@ -1,3 +1,5 @@
+import { SearchRegion } from "./enums/SearchRegion";
+
 export type Config = {
   // general config
   target_hosts: string[];
@@ -27,7 +29,7 @@ export type Config = {
   // web search config
   search_web: boolean;
   web_query: string;
-  web_region: string;
+  web_region: SearchRegion;
   web_max_results: number;
   web_backend: string;
 
