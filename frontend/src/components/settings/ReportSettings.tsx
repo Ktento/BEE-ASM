@@ -1,6 +1,13 @@
 import { useState } from "react";
 import ConfigCard from "../ConfigCard";
-import { Box, Checkbox, FormControl, Input, Text } from "@yamada-ui/react";
+import {
+  Box,
+  Checkbox,
+  FormControl,
+  Input,
+  Button,
+  Text,
+} from "@yamada-ui/react";
 import { SettingProps } from "../ConfigPanel";
 
 export const ReportSettings = (props: SettingProps) => {
@@ -8,7 +15,6 @@ export const ReportSettings = (props: SettingProps) => {
   const [month, setMonth] = useState(props.config.report_since.slice(5, 7));
   const [day, setDay] = useState(props.config.report_since.slice(8, 10));
 
-  // 入力が変更されるたびにISO形式の日付を再構成して反映
   const handleDateChange = (type: "year" | "month" | "day", value: string) => {
     const updatedYear = type === "year" ? value : year;
     const updatedMonth = type === "month" ? value.padStart(2, "0") : month;
@@ -20,6 +26,24 @@ export const ReportSettings = (props: SettingProps) => {
 
     const newDate = `${updatedYear}-${updatedMonth}-${updatedDay}T00:00:00`;
     props.setConfig({ ...props.config, report_since: newDate });
+  };
+
+  const handleAddEmail = () => {
+    props.setConfig({
+      ...props.config,
+      report_emails: [...props.config.report_emails, ""],
+    });
+  };
+
+  const handleChangeEmail = (index: number, value: string) => {
+    const newEmails = [...props.config.report_emails];
+    newEmails[index] = value;
+    props.setConfig({ ...props.config, report_emails: newEmails });
+  };
+
+  const handleRemoveEmail = (index: number) => {
+    const newEmails = props.config.report_emails.filter((_, i) => i !== index);
+    props.setConfig({ ...props.config, report_emails: newEmails });
   };
 
   return (
@@ -93,21 +117,28 @@ export const ReportSettings = (props: SettingProps) => {
                   CCの代わりにBCCを使用しますか？
                 </Checkbox>
                 <FormControl label="レポート送信先メールアドレス">
-                  <Input
-                    type="email"
-                    placeholder="email"
-                    value={props.config.report_emails}
-                    onChange={() =>
-                      props.setConfig({
-                        ...props.config, // TODO: 配列化
-                      })
-                    }
-                    width={"auto"}
-                  />
+                  {props.config.report_emails.map((email, index) => (
+                    <Box key={index} display="flex" alignItems="center" mb={2}>
+                      <Input
+                        type="email"
+                        placeholder="email"
+                        value={email}
+                        onChange={(e) =>
+                          handleChangeEmail(index, e.target.value)
+                        }
+                        width="70%"
+                        mr={2}
+                      />
+                      <Button onClick={() => handleRemoveEmail(index)}>
+                        -
+                      </Button>
+                    </Box>
+                  ))}
+                  <Button onClick={handleAddEmail}>+</Button>
                 </FormControl>
                 <FormControl label="Geminiにレビューさせる件数">
                   <Input
-                    type="件数"
+                    type="number"
                     value={props.config.report_limit}
                     onChange={(e) =>
                       props.setConfig({

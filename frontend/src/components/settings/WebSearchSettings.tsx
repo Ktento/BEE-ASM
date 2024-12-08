@@ -45,9 +45,15 @@ export const WebSearchSettings = (props: SettingProps) => {
                 </FormControl>
                 <RadioGroup
                   value={props.config.web_region}
-                  onChange={() => props.setConfig({ ...props.config })} // TODO: set region
+                  onChange={(value: SearchRegion) =>
+                    props.setConfig({
+                      ...props.config,
+                      web_region: value,
+                    })
+                  }
                 >
                   <Radio value={SearchRegion.JP}>日本</Radio>
+                  <Radio value={SearchRegion.US}>アメリカ</Radio>
                 </RadioGroup>
                 <FormControl label="検索上限">
                   <Input
@@ -58,20 +64,6 @@ export const WebSearchSettings = (props: SettingProps) => {
                       props.setConfig({
                         ...props.config,
                         web_max_results: parseInt(e.target.value),
-                      })
-                    }
-                    width={"auto"}
-                  />
-                </FormControl>
-                <FormControl label="検索バックエンド">
-                  <Input
-                    type="text"
-                    placeholder="web backend"
-                    value={props.config.web_backend}
-                    onChange={(e) =>
-                      props.setConfig({
-                        ...props.config,
-                        web_backend: e.target.value,
                       })
                     }
                     width={"auto"}
