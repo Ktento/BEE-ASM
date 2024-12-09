@@ -6,6 +6,8 @@ import {
   Progress as LinearProgress,
 } from "@yamada-ui/react";
 import { useEffect } from "react";
+import { ProgressesRes } from "../types/Progress";
+import { ApiService } from "../services/ApiService";
 
 interface Props {
   sessionId: string;
@@ -25,7 +27,6 @@ function Progress(props: Props) {
     setOverallProgress,
     setTaskProgresses,
   } = props;
-  const ENDPOINT: string = import.meta.env.VITE_END_POINT;
 
   useEffect(() => {
     if (!sessionId) {
@@ -34,39 +35,13 @@ function Progress(props: Props) {
     }
 
     const fetchProgress = async () => {
-      try {
-        const header = new Headers();
-        header.append("Content-Type", "application/json");
+      const data: ProgressesRes | null = await ApiService.getInstance().get(
+        `progress/show?session_id=${sessionId}`
+      );
+      if (!data) return;
 
-        const response = await fetch(
-          `${ENDPOINT}/progress/show?session_id=${sessionId}`,
-          {
-            method: "GET",
-            headers: header,
-          }
-        );
-
-        if (!response.ok) {
-          console.log("error");
-          console.log(response);
-          return;
-        }
-
-        const data = await response.json();
-        if (data) {
-          if (typeof data.overall_progress === "number") {
-            setOverallProgress(Math.round(data.overall_progress * 100));
-          }
-          if (
-            data.task_progresses &&
-            typeof data.task_progresses === "object"
-          ) {
-            setTaskProgresses(data.task_progresses);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching progress:", error);
-      }
+      setOverallProgress(Math.round(data.overall_progress * 100));
+      setTaskProgresses(data.task_progresses);
     };
 
     const interval = setInterval(() => {
@@ -76,7 +51,7 @@ function Progress(props: Props) {
     fetchProgress();
 
     return () => clearInterval(interval);
-  }, [ENDPOINT, sessionId]);
+  }, [sessionId, setOverallProgress, setTaskProgresses]);
 
   return (
     <Box>
