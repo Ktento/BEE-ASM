@@ -5,18 +5,27 @@ import {
   Text,
   Progress as LinearProgress,
 } from "@yamada-ui/react";
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
-function Progress() {
-  const [overallProgress, setOverallProgress] = useState(0);
-  const [taskProgresses, setTaskProgresses] = useState<Record<string, number>>(
-    {}
-  );
+interface Props {
+  sessionId: string;
+  overallProgress: number;
+  taskProgresses: Record<string, number>;
+  setOverallProgress: React.Dispatch<React.SetStateAction<number>>;
+  setTaskProgresses: React.Dispatch<
+    React.SetStateAction<Record<string, number>>
+  >;
+}
+
+function Progress(props: Props) {
+  const {
+    sessionId,
+    overallProgress,
+    taskProgresses,
+    setOverallProgress,
+    setTaskProgresses,
+  } = props;
   const ENDPOINT: string = import.meta.env.VITE_END_POINT;
-
-  const location = useLocation();
-  const sessionId = location.state?.sessionId;
 
   useEffect(() => {
     if (!sessionId) {
