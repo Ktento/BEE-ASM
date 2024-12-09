@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Config } from "../types/Config";
 import { CreateSessionRes } from "../types/CreateSessionReq";
 import { SearchRegion } from "../types/enums/SearchRegion";
+import { ApiService } from "../services/ApiService";
 
 function Index() {
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,6 @@ function Index() {
     search_cve: true,
   });
   const navigate = useNavigate();
-  const ENDPOINT: string = import.meta.env.VITE_END_POINT;
 
   // バリデーション関数
   const validateConfig = (config: Config): boolean => {
@@ -52,33 +52,21 @@ function Index() {
     }
 
     try {
-      const header = new Headers();
-      header.append("Content-Type", "application/json");
+      const data: CreateSessionRes | null = await ApiService.getInstance().post(
+        "session/create",
+        config
+      );
 
-      const res = await fetch(`${ENDPOINT}/session/create`, {
-        method: "POST",
-        headers: header,
-        body: JSON.stringify(config),
-      });
+      if (!data) return;
 
-      if (!res.ok) return;
-
-      const data: CreateSessionRes = await res.json();
       const sessionId = data.session_id;
       console.log(sessionId);
 
-      const exeRes = await fetch(`${ENDPOINT}/asm/execute`, {
-        method: "POST",
-        headers: header,
-        body: JSON.stringify({
-          session_id: sessionId,
-        }),
+      const exeRes = await ApiService.getInstance().post("asm/execute", {
+        session_id: sessionId,
       });
 
-      if (!exeRes.ok) {
-        console.log("実行エラー");
-        return;
-      }
+      if (!exeRes) return;
 
       navigate("/success", { state: { sessionId } });
     } catch (e) {
