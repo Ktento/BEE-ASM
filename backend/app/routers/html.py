@@ -16,7 +16,7 @@ def get_index_html():
 	</head>
 	<body>
 		<a href="/docs">See the Swagger UI</a>
-		<a href="/docs">or Redoc.</a>
+		<a href="/redoc">or Redoc.</a>
 	</body>
 </html>
 """

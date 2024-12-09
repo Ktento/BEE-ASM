@@ -47,6 +47,9 @@ def ProcCVE(context: Context, cpes: set) -> list:
 				sortedStr = sorted(js, key=lambda x:x["cvss3"] if "cvss3" in x else -1.0)
 				f.write(json.dumps(sortedStr, ensure_ascii=False, indent=None))
 
+			try: context.session.result.cves[cpe] = json.dumps(js, ensure_ascii=False, indent=None)
+			except Exception as e: context.logger.Log(Level.ERROR, f"[CVE] Failed to store result: {e}")
+
 			# 結果のJSONからまとめる
 			for v in js:
 				if "id" not in v: continue

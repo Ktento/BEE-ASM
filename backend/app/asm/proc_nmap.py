@@ -20,9 +20,12 @@ def ProcNmap(context: Context) -> str:
 		# Nmap XML出力モード(-oX)の結果をそのまま書き込む
 		fname = f"{context.savedir}/nmap_result.xml"
 		fname_err = f"{context.savedir}/nmap_result_stderr.txt"
-		with open(fname, "w") as f, open(fname_err, "w") as g:
+		context.session.result.nmap_stdout = result.stdout
+		context.session.result.nmap_stderr = result.stderr
+		with open(fname, "w") as f:
 			f.write(result.stdout)
-			g.write(result.stderr)
+		with open(fname_err, "w") as f:
+			f.write(result.stderr)
 		context.logger.Log(Level.INFO, f"[Nmap] Wrote scan result to {context.savedir}/nmap_result(.xml|_stderr.txt).")
 	except Exception as e:
 		context.logger.Log(Level.ERROR, f"[Nmap] Scan failed: {e}")

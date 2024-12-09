@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import asm, html, log, progress, session
+from routers import asm, html, log, progress, result, session
 
 app = FastAPI()
 
@@ -11,6 +11,7 @@ app.include_router(session.router)
 app.include_router(log.router)
 app.include_router(progress.router)
 app.include_router(asm.router)
+app.include_router(result.router)
 
 # python3 -m uvicorn fastapi_main:app --reload
 
