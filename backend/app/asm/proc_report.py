@@ -382,7 +382,7 @@ class ProcReport:
 			# CSS
 			cvss3.attrib["style"] = f"background-color: #{bgColor}; color: #{fgColor}; text-align: right;"
 
-			t = (cveId, cvss3, cveDesc, published, extra)
+			t = (cveId, cvss3, published, cveDesc, extra)
 			if cve["cpe"] in dic:
 				dic[cve["cpe"]].append(t)
 			else:
