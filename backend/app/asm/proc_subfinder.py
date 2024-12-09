@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import subprocess
-import config as Config
+
 from context import Context
 from log import Level
 
@@ -13,12 +13,12 @@ def ProcSubfinder(context: Context) -> list:
 	try:
 		# subfinderを実行するコマンドを構築
 		# 検査対象のドメイン、検査対象外のドメインをコマンド実行できるように文字結合
-		tgtStr = str.join(",", Config.TargetHosts)
-		exlStr = str.join(",", Config.ExcludeHosts)
+		tgtStr = str.join(",", context.config.target_hosts)
+		exlStr = str.join(",", context.config.exclude_hosts)
 
 		command = ['subfinder', '-d', tgtStr, '-ip', '-nW', '-t', '100']
 		# 検査対象外のホストがある場合-fオプションを追加
-		if len(Config.ExcludeHosts) > 0:
+		if len(context.config.exclude_hosts) > 0:
 			command += ['-f', exlStr]
 
 		# subprocessを使ってsubfinderを実行
