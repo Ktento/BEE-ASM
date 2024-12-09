@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Result } from "../types/Restult";
 import { ResultPanel } from "../components/ResultPanel";
+import { ApiService } from "../services/ApiService";
 
 function Success() {
   const location = useLocation();
@@ -30,26 +31,11 @@ function Success() {
     if (overallProgress < 100 || !sessionId) return;
 
     const fetchResult = async () => {
-      const header = new Headers();
-      header.append("Content-Type", "application/json");
-
-      try {
-        const response = await fetch(
-          `${ENDPOINT}/result/show?session_id=${sessionId}`,
-          {
-            method: "GET",
-            headers: header,
-          }
-        );
-        if (!response.ok) return;
-
-        const data = await response.json();
-        if (data) {
-          setResult(data);
-        }
-      } catch (e) {
-        console.log(e);
-      }
+      const data: Result | null = await ApiService.getInstance().get(
+        `result/show?session_id=${sessionId}`
+      );
+      if (!data) return;
+      setResult(data);
     };
 
     fetchResult();
