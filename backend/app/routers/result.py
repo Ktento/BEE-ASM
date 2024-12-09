@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 
 from routers.session import ensure_session
 from schemes.result import (
+	HostCpePortsModel,
 	ResultCveModel,
 	ResultModel,
 	ResultNmapModel,
@@ -49,7 +50,12 @@ def show(
 		except: pass
 
 	if session.config.search_cve:
-		try: r.cve = ResultCveModel(cves=session.result.cves)
+		try: r.cve = ResultCveModel(
+			cves=session.result.cves,
+			cve_data=session.result.cve_data,
+			host_cpes=session.result.host_cpes,
+			host_cpe_ports=[HostCpePortsModel(host=k[0], cpe=k[1], ports=session.result.host_cpe_ports[k]) for k in session.result.host_cpe_ports.keys()]
+		)
 		except: pass
 
 	return r
