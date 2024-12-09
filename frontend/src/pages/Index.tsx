@@ -51,27 +51,23 @@ function Index() {
       return;
     }
 
-    try {
-      const data: CreateSessionRes | null = await ApiService.getInstance().post(
-        "session/create",
-        config
-      );
+    const data: CreateSessionRes | null = await ApiService.getInstance().post(
+      "session/create",
+      config
+    );
 
-      if (!data) return;
+    if (!data) return;
 
-      const sessionId = data.session_id;
-      console.log(sessionId);
+    const sessionId = data.session_id;
+    console.log(sessionId);
 
-      const exeRes = await ApiService.getInstance().post("asm/execute", {
-        session_id: sessionId,
-      });
+    const exeRes = await ApiService.getInstance().post("asm/execute", {
+      session_id: sessionId,
+    });
 
-      if (!exeRes) return;
+    if (!exeRes) return;
 
-      navigate("/success", { state: { sessionId } });
-    } catch (e) {
-      console.log(e);
-    }
+    navigate("/success", { state: { sessionId } });
   };
 
   return (
