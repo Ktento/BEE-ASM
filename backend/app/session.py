@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from pathlib import Path
-from typing import final
+from typing import Any, final
 from uuid import UUID, uuid4
 
 from log import Logger
@@ -22,6 +22,9 @@ class Result():
 	# CVE
 	cves: dict[str, str] = dict()
 	"""キー: CPE, 値: CVE情報のJSON"""
+	cve_data: list[Any] = []
+	host_cpes: dict[str, set[str]] = dict()
+	host_cpe_ports: dict[tuple[str, str], set[str]] = dict()
 
 	# DuckDuckGo
 	web: str = ""

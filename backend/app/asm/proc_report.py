@@ -5,6 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 import smtplib
+from typing import Any
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -14,6 +15,11 @@ import requests
 import asm.proc_db as DB
 from context import Context
 from log import Level
+
+# 型エイリアス
+_CveData = list[Any]
+_HostCpes = dict[str, set[str]]
+_HostCpePorts = dict[tuple[str, str], set[str]]
 
 class ProcReport:
 	__context: Context
@@ -51,7 +57,7 @@ class ProcReport:
 		# 	print(f"failed. http status code: {response.status_code}")
 		# 	print("preview:", response.text)
 
-	def create_csvs(self, cveData, hostCpes, hostCpePorts, fAll, fPer):
+	def create_csvs(self, cveData: _CveData, hostCpes: _HostCpes, hostCpePorts: _HostCpePorts, fAll, fPer):
 		# 全ホストのCVE情報
 		wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 		wa.writeheader()
@@ -78,16 +84,14 @@ class ProcReport:
 			else:
 				dic[cve["cpe"]] = [d]
 
-		for hostCpe in hostCpes:
-			for cpe in hostCpe[1]:
+		for hostCpe in hostCpes.keys():
+			for cpe in hostCpes[hostCpe]:
 				if cpe not in dic: continue
 				for i in dic[cpe]:
-					i["Host"] = hostCpe[0]
+					i["Host"] = hostCpe
 					i["Ports"] = "(Unknown)"
-					for hostCpePort in hostCpePorts:
-						if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
-							i["Ports"] = str.join(", ", hostCpePort["ports"])
-							break
+					if (hostCpe, cpe) in hostCpePorts:
+						i["Ports"] = str.join(", ", hostCpePorts[(hostCpe, cpe)])
 					wp.writerow(i)
 
 	def send_email(self, ctx, body, attachments):
@@ -148,7 +152,11 @@ class ProcReport:
 		finally:
 			if server != None: server.quit()
 
-	def makereport(self, context: Context, cve_data_array, host_cpes, host_cpe_ports):
+	def makereport(self):
+		context = self.__context
+		cve_data_array = context.session.result.cve_data
+		host_cpes = context.session.result.host_cpes
+		host_cpe_ports = context.session.result.host_cpe_ports
 		context.logger.Log(Level.INFO, f"[Report] Getting CVE information...")
 
 		# 諸条件に一致するCVE情報のみ抽出する
@@ -258,7 +266,7 @@ class ProcReport:
 			"unknownVersionFound": unknownVerFound
 		}
 
-	def mkhtml(self, ctx: Context, cveData, hostCpes, hostCpePorts, extra) -> bytes:
+	def mkhtml(self, ctx: Context, cveData: _CveData, hostCpes: _HostCpes, hostCpePorts: _HostCpePorts, extra_text: str) -> bytes:
 		baseHtml = ET.fromstring(f"""\
 	<html>
 		<head>
@@ -308,7 +316,7 @@ class ProcReport:
 		</head>
 		<body>
 			<h1>ASM レポート</h1>
-	{extra}
+	{extra_text}
 			<p>ジャンプ: <a href="#allhostshdr">全ホスト</a> | <a href="#perhostshdr">ホスト別</a></p>
 			<h2 id="allhostshdr">全ホスト</h2>
 			<table border="1" cellspacing="0" cellpadding="0">
@@ -349,6 +357,7 @@ class ProcReport:
 		perhosts = baseHtml.find("./body/table/tbody[@id='perhosts']")
 		if allhosts == None or perhosts == None: raise Exception("allhosts or perhosts is None")
 
+		# キー: CPE文字列, 値: CVE情報のタプル
 		dic = dict()
 		for cve in cveData:
 			row = ET.Element("tr")
@@ -396,8 +405,8 @@ class ProcReport:
 			row.append(extra)
 			allhosts.append(row)
 
-		for hostCpe in hostCpes:
-			for cpe in hostCpe[1]:
+		for hostCpe in hostCpes.keys():
+			for cpe in hostCpes[hostCpe]:
 				if cpe not in dic: continue
 				for i in dic[cpe]:
 					row = ET.Element("tr")
@@ -405,14 +414,12 @@ class ProcReport:
 					ports = ET.Element("td")
 					cpee = ET.Element("td")
 
-					host.text = hostCpe[0]
+					host.text = hostCpe
 					cpee.text = cpe
 
 					ports.text = "(Unknown)"
-					for hostCpePort in hostCpePorts:
-						if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
-							ports.text = str.join(", ", hostCpePort["ports"])
-							break
+					if (hostCpe, cpe) in hostCpePorts:
+						ports.text = str.join(", ", hostCpePorts[(hostCpe, cpe)])
 
 					row.append(host)
 					row.append(ports)
