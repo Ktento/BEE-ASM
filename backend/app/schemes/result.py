@@ -32,5 +32,5 @@ class ResultModel(BaseModel):
 	subfinder: Optional[ResultSubfinderModel] = Field(default=None)
 	nmap: Optional[ResultNmapModel] = Field(default=None)
 	cve: Optional[ResultCveModel] = Field(default=None)
-	web_search: Optional[ResultWebSearchModel] = Field(default=None)
-	report: Optional[ResultReportModel] = Field(default=None)
+	websearch: Optional[ResultWebSearchModel] = Field(default=None)
+	reporting: Optional[ResultReportModel] = Field(default=None)

@@ -36,7 +36,7 @@ def show(
 		except: pass
 
 	if session.config.enable_reporting:
-		try: r.report = ResultReportModel(
+		try: r.reporting = ResultReportModel(
 			csv_all=session.result.report_csv_all,
 			csv_per=session.result.report_csv_per,
 			html=session.result.report_html,
@@ -45,7 +45,7 @@ def show(
 		except: pass
 
 	if session.config.search_web:
-		try: r.web_search = ResultWebSearchModel(result=session.result.web)
+		try: r.websearch = ResultWebSearchModel(result=session.result.web)
 		except: pass
 
 	if session.config.search_cve:
