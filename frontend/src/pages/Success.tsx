@@ -18,7 +18,6 @@ import { ApiService } from "../services/ApiService";
 function Success() {
   const location = useLocation();
   const sessionId = location.state?.sessionId;
-  const ENDPOINT: string = import.meta.env.VITE_END_POINT;
 
   const [overallProgress, setOverallProgress] = useState(0);
   const [taskProgresses, setTaskProgresses] = useState<Record<string, number>>(
@@ -41,6 +40,20 @@ function Success() {
     fetchResult();
   }, [overallProgress, sessionId]);
 
+  const handleBackHome = () => {
+    setIsOpen(false);
+    const fetchDeleteSession = async () => {
+      await ApiService.getInstance().delete(
+        `session/destroy?session_id=${sessionId}`
+      );
+
+      window.location.href = "/";
+    };
+
+    fetchDeleteSession();
+    setIsOpen(false);
+  };
+
   if (!sessionId) {
     // Todo: add sorry page
     return (
@@ -49,32 +62,6 @@ function Success() {
       </Box>
     );
   }
-
-  const handleBackHome = () => {
-    setIsOpen(false);
-    const fetchDeleteSession = async () => {
-      const header = new Headers();
-      header.append("Content-Type", "application/json");
-
-      try {
-        const response = await fetch(
-          `${ENDPOINT}/session/destroy?session_id=${sessionId}`,
-          {
-            method: "DELETE",
-            headers: header,
-          }
-        );
-        if (!response.ok) return;
-        window.location.href = "/";
-      } catch (e) {
-        console.log(e);
-        return;
-      }
-    };
-
-    fetchDeleteSession();
-    setIsOpen(false);
-  };
 
   return (
     <Box as={"main"} p={5}>

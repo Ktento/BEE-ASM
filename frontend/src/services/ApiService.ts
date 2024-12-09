@@ -67,6 +67,32 @@ export class ApiService {
     }
   }
 
+  /**
+   * fetch http delete method
+   * @param path
+   */
+  async delete<T>(path: string): Promise<T | null> {
+    const url = `${this.ENDPOINT}/${path}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: this.header(),
+      });
+
+      if (!response.ok) {
+        console.log(`fetch error: ${url}`);
+        console.log(response);
+        return null;
+      }
+      const data: T = await response.json();
+      return data;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
   private header() {
     const header = new Headers();
     header.append("Content-Type", "application/json");
