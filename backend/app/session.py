@@ -10,6 +10,29 @@ from schemes.progress import ProgressModel
 from schemes.serverconfig import ServerConfigModel
 
 @final
+class Result():
+	# Nmap
+	nmap_stdout: str = ""
+	nmap_stderr: str = ""
+
+	# subfinder
+	subfinder: dict[str, str] = dict()
+	"""キー: ドメイン名, 値: IPアドレス"""
+
+	# CVE
+	cves: dict[str, str] = dict()
+	"""キー: CPE, 値: CVE情報のJSON"""
+
+	# DuckDuckGo
+	web: str = ""
+
+	# Report
+	report_csv_all: str = ""
+	report_csv_per: str = ""
+	report_html: str = ""
+	report_sent: bool = False
+
+@final
 class Session():
 	__uuid: UUID
 	__conf: ConfigModel
@@ -19,6 +42,7 @@ class Session():
 	__active: bool
 	__started_at: datetime
 	__progress: ProgressModel | None
+	__result: Result
 
 	def __init__(self, config: ConfigModel):
 		self.__uuid = uuid4()
@@ -30,6 +54,7 @@ class Session():
 		self.__active = True
 		self.__started_at = datetime.now()
 		self.__progress = None
+		self.__result = Result()
 
 	@property
 	def uuid(self): return self.__uuid
@@ -51,6 +76,9 @@ class Session():
 
 	@property
 	def started_at(self): return self.__started_at
+
+	@property
+	def result(self): return self.__result
 
 	@property
 	def progress(self): return self.__progress

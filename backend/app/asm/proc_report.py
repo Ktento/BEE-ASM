@@ -8,11 +8,10 @@ import smtplib
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-import asm.proc_db as DB
-import psycopg2
-from psycopg2 import sql
+
 import requests
 
+import asm.proc_db as DB
 from context import Context
 from log import Level
 
@@ -210,14 +209,22 @@ class ProcReport:
 
 		# CSVファイルの作成
 		enc = self.__context.config.report_csv_encoding if self.__context.config.report_csv_encoding is not None \
-			and self.__context.config.report_csv_encoding is not "" else "utf-8"
+			and self.__context.config.report_csv_encoding != "" else "utf-8"
 		with open(csv_filename_all, mode='w', newline='', encoding=enc) as csvfile_all, \
 			open(csv_filename_per, mode='w', newline='', encoding=enc) as csvfile_per:
 			self.create_csvs(cve_data_array, host_cpes, host_cpe_ports, csvfile_all, csvfile_per)
 
+		try:
+			with open(csv_filename_all, mode='r', newline='', encoding=enc) as csvfile_all, \
+				open(csv_filename_per, mode='r', newline='', encoding=enc) as csvfile_per:
+				context.session.result.report_csv_all = csvfile_all.read()
+				context.session.result.report_csv_per = csvfile_per.read()
+		except Exception as e: context.logger.Log(Level.ERROR, f"[Report] Failed to store CVS results: {e}")
+
 		# CSVを添付してEメール送信
 		context.logger.Log(Level.INFO, f"[Report] Sending mail...")
 		self.send_email(context, html, [csv_filename_all, csv_filename_per])
+		context.session.result.report_sent = True
 		context.logger.Log(Level.INFO, f"[Report] Mail sent.")
 
 		# Optional: Remove the CSV file after sending the email
@@ -414,4 +421,7 @@ class ProcReport:
 						row.append(j)
 					perhosts.append(row)
 
-		return b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + b"\n"
+		rslt: bytes = b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + b"\n"
+		try: ctx.session.result.report_html = rslt.decode("utf-8")
+		except Exception as e: ctx.logger.Log(Level.ERROR, f"[Report] Failed to store HTML result: {e}")
+		return rslt
