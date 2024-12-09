@@ -5,18 +5,28 @@ import {
   Text,
   Progress as LinearProgress,
 } from "@yamada-ui/react";
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { ProgressesRes } from "../types/Progress";
+import { ApiService } from "../services/ApiService";
 
-function Progress() {
-  const [overallProgress, setOverallProgress] = useState(0);
-  const [taskProgresses, setTaskProgresses] = useState<Record<string, number>>(
-    {}
-  );
-  const ENDPOINT: string = import.meta.env.VITE_END_POINT;
+interface Props {
+  sessionId: string;
+  overallProgress: number;
+  taskProgresses: Record<string, number>;
+  setOverallProgress: React.Dispatch<React.SetStateAction<number>>;
+  setTaskProgresses: React.Dispatch<
+    React.SetStateAction<Record<string, number>>
+  >;
+}
 
-  const location = useLocation();
-  const sessionId = location.state?.sessionId;
+function Progress(props: Props) {
+  const {
+    sessionId,
+    overallProgress,
+    taskProgresses,
+    setOverallProgress,
+    setTaskProgresses,
+  } = props;
 
   useEffect(() => {
     if (!sessionId) {
@@ -25,39 +35,13 @@ function Progress() {
     }
 
     const fetchProgress = async () => {
-      try {
-        const header = new Headers();
-        header.append("Content-Type", "application/json");
+      const data: ProgressesRes | null = await ApiService.getInstance().get(
+        `progress/show?session_id=${sessionId}`
+      );
+      if (!data) return;
 
-        const response = await fetch(
-          `${ENDPOINT}/progress/show?session_id=${sessionId}`,
-          {
-            method: "GET",
-            headers: header,
-          }
-        );
-
-        if (!response.ok) {
-          console.log("error");
-          console.log(response);
-          return;
-        }
-
-        const data = await response.json();
-        if (data) {
-          if (typeof data.overall_progress === "number") {
-            setOverallProgress(Math.round(data.overall_progress * 100));
-          }
-          if (
-            data.task_progresses &&
-            typeof data.task_progresses === "object"
-          ) {
-            setTaskProgresses(data.task_progresses);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching progress:", error);
-      }
+      setOverallProgress(Math.round(data.overall_progress * 100));
+      setTaskProgresses(data.task_progresses);
     };
 
     const interval = setInterval(() => {
@@ -67,7 +51,7 @@ function Progress() {
     fetchProgress();
 
     return () => clearInterval(interval);
-  }, [ENDPOINT, sessionId]);
+  }, [sessionId, setOverallProgress, setTaskProgresses]);
 
   return (
     <Box>
