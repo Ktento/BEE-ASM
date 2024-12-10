@@ -17,8 +17,8 @@ function Index() {
     enable_subfinder: true,
     enable_reporting: true,
     report_emails: [""],
-    report_limit: 0,
-    report_since: "1970-01-01T00:00:00",
+    report_limit: 10,
+    report_since: "2024-01-01T00:00:00",
     report_min_cvss3: 0,
     report_csv_encoding: "",
     report_enable_gemini: true,
@@ -47,9 +47,7 @@ function Index() {
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateConfig(config)) {
-      return;
-    }
+    if (!validateConfig(config)) return;
 
     const data: CreateSessionRes | null = await ApiService.getInstance().post(
       "session/create",
