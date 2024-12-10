@@ -9,6 +9,7 @@ class ServerConfigModel(BaseModel):
 	version: str = Field(default="0.1.0", description="このASMツールサーバーのバージョン")
 
 	# DB接続情報を設定
+	enable_db:bool=Field(default=True,description="DB接続を行うか")
 	host: str = Field(default="mbsd-db.cpmyoiaqiinr.us-east-1.rds.amazonaws.com", description="EC2のパブリックIPまたはDNS名")
 	port: int = Field(default=5432, description="PostgreSQLのデフォルトポート")
 	database: str = Field(default="mbsd", description="データベース名")
