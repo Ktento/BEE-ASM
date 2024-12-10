@@ -5,16 +5,21 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 import smtplib
+from typing import Any
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-import asm.proc_db as DB
-import psycopg2
-from psycopg2 import sql
+
 import requests
 
+import asm.proc_db as DB
 from context import Context
 from log import Level
+
+# 型エイリアス
+_CveData = list[Any]
+_HostCpes = dict[str, set[str]]
+_HostCpePorts = dict[tuple[str, str], set[str]]
 
 class ProcReport:
 	__context: Context
@@ -52,7 +57,7 @@ class ProcReport:
 		# 	print(f"failed. http status code: {response.status_code}")
 		# 	print("preview:", response.text)
 
-	def create_csvs(self, cveData, hostCpes, hostCpePorts, fAll, fPer):
+	def create_csvs(self, cveData: _CveData, hostCpes: _HostCpes, hostCpePorts: _HostCpePorts, fAll, fPer):
 		# 全ホストのCVE情報
 		wa = csv.DictWriter(fAll, ["CPE", "CVEID", "CVSS3", "CVSS", "Published", "Description", "Gemini"])
 		wa.writeheader()
@@ -79,16 +84,14 @@ class ProcReport:
 			else:
 				dic[cve["cpe"]] = [d]
 
-		for hostCpe in hostCpes:
-			for cpe in hostCpe[1]:
+		for hostCpe in hostCpes.keys():
+			for cpe in hostCpes[hostCpe]:
 				if cpe not in dic: continue
 				for i in dic[cpe]:
-					i["Host"] = hostCpe[0]
+					i["Host"] = hostCpe
 					i["Ports"] = "(Unknown)"
-					for hostCpePort in hostCpePorts:
-						if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
-							i["Ports"] = str.join(", ", hostCpePort["ports"])
-							break
+					if (hostCpe, cpe) in hostCpePorts:
+						i["Ports"] = str.join(", ", hostCpePorts[(hostCpe, cpe)])
 					wp.writerow(i)
 
 	def send_email(self, ctx, body, attachments):
@@ -149,7 +152,11 @@ class ProcReport:
 		finally:
 			if server != None: server.quit()
 
-	def makereport(self, context: Context, cve_data_array, host_cpes, host_cpe_ports):
+	def makereport(self):
+		context = self.__context
+		cve_data_array = context.session.result.cve_data
+		host_cpes = context.session.result.host_cpes
+		host_cpe_ports = context.session.result.host_cpe_ports
 		context.logger.Log(Level.INFO, f"[Report] Getting CVE information...")
 
 		# 諸条件に一致するCVE情報のみ抽出する
@@ -162,20 +169,33 @@ class ProcReport:
 		if self.__context.config.report_enable_gemini:
 			for c in cve_data_array[:self.__context.config.report_limit]:
 				try:
-					connection = DB.connect_to_db(context)
-					if connection:
-						#CVE_IDを元にDBに格納されているGeminiの説明を取得
-						result=DB.select_cve_ai(connection,c["id"])
-						if result:
-							c["gemini"]=result
-							DB.close_connection(connection)
-						#接続できない　or 存在しない場合はGeminiにアクセス
-						else:
-							DB.close_connection(connection)
-							c["gemini"] = self.review_description(c["summary"])
+					#DB利用
+					if self.__context.session.enable_db:
+						connection = DB.connect_to_db(context)
+						if connection:
+							#CVE_IDを元にDBに格納されているGeminiの説明を取得
+							result=DB.select_cve_ai(connection,c["id"])
+							if result:
+								c["gemini"]=result
+								DB.close_connection(connection)
+							#接続できない　or 存在しない場合はGeminiにアクセス
+							#Geminiによるレビューを受けたあとDBにその情報を登録
+							else:
+								#一度connectionをclose(他セッションとのトランザクション競合を避けるため)
+								DB.close_connection(connection)
+								connection2 = DB.connect_to_db(context)
+								if connection2:
+									c["gemini"] = self.review_description(c["summary"])
+									columns = ["CVE_id", "CVE_description", "AI_analysis", "CPE","published"]
+									cvedata=[
+										(c["id"],c["summary"],c["gemini"],c["cpe"],c["published_str"])
+									]
+									DB.insert_sql(context,connection,"CVE",columns,cvedata)
+									DB.close_connection(connection)
+								else:
+									context.logger.Log(Level.ERROR,f"[DB] Could not reconnect to store CVE {c['id']} after Gemini analysis.")
 					else:
 						c["gemini"] = self.review_description(c["summary"])
-
 				except Exception as e:
 					c["gemini"] = "(Failed)"
 
@@ -210,14 +230,22 @@ class ProcReport:
 
 		# CSVファイルの作成
 		enc = self.__context.config.report_csv_encoding if self.__context.config.report_csv_encoding is not None \
-			and self.__context.config.report_csv_encoding is not "" else "utf-8"
+			and self.__context.config.report_csv_encoding != "" else "utf-8"
 		with open(csv_filename_all, mode='w', newline='', encoding=enc) as csvfile_all, \
 			open(csv_filename_per, mode='w', newline='', encoding=enc) as csvfile_per:
 			self.create_csvs(cve_data_array, host_cpes, host_cpe_ports, csvfile_all, csvfile_per)
 
+		try:
+			with open(csv_filename_all, mode='r', newline='', encoding=enc) as csvfile_all, \
+				open(csv_filename_per, mode='r', newline='', encoding=enc) as csvfile_per:
+				context.session.result.report_csv_all = csvfile_all.read()
+				context.session.result.report_csv_per = csvfile_per.read()
+		except Exception as e: context.logger.Log(Level.ERROR, f"[Report] Failed to store CVS results: {e}")
+
 		# CSVを添付してEメール送信
 		context.logger.Log(Level.INFO, f"[Report] Sending mail...")
 		self.send_email(context, html, [csv_filename_all, csv_filename_per])
+		context.session.result.report_sent = True
 		context.logger.Log(Level.INFO, f"[Report] Mail sent.")
 
 		# Optional: Remove the CSV file after sending the email
@@ -251,7 +279,7 @@ class ProcReport:
 			"unknownVersionFound": unknownVerFound
 		}
 
-	def mkhtml(self, ctx: Context, cveData, hostCpes, hostCpePorts, extra) -> bytes:
+	def mkhtml(self, ctx: Context, cveData: _CveData, hostCpes: _HostCpes, hostCpePorts: _HostCpePorts, extra_text: str) -> bytes:
 		baseHtml = ET.fromstring(f"""\
 	<html>
 		<head>
@@ -301,7 +329,7 @@ class ProcReport:
 		</head>
 		<body>
 			<h1>ASM レポート</h1>
-	{extra}
+	{extra_text}
 			<p>ジャンプ: <a href="#allhostshdr">全ホスト</a> | <a href="#perhostshdr">ホスト別</a></p>
 			<h2 id="allhostshdr">全ホスト</h2>
 			<table border="1" cellspacing="0" cellpadding="0">
@@ -342,6 +370,7 @@ class ProcReport:
 		perhosts = baseHtml.find("./body/table/tbody[@id='perhosts']")
 		if allhosts == None or perhosts == None: raise Exception("allhosts or perhosts is None")
 
+		# キー: CPE文字列, 値: CVE情報のタプル
 		dic = dict()
 		for cve in cveData:
 			row = ET.Element("tr")
@@ -375,7 +404,7 @@ class ProcReport:
 			# CSS
 			cvss3.attrib["style"] = f"background-color: #{bgColor}; color: #{fgColor}; text-align: right;"
 
-			t = (cveId, cvss3, cveDesc, published, extra)
+			t = (cveId, cvss3, published, cveDesc, extra)
 			if cve["cpe"] in dic:
 				dic[cve["cpe"]].append(t)
 			else:
@@ -389,8 +418,8 @@ class ProcReport:
 			row.append(extra)
 			allhosts.append(row)
 
-		for hostCpe in hostCpes:
-			for cpe in hostCpe[1]:
+		for hostCpe in hostCpes.keys():
+			for cpe in hostCpes[hostCpe]:
 				if cpe not in dic: continue
 				for i in dic[cpe]:
 					row = ET.Element("tr")
@@ -398,14 +427,12 @@ class ProcReport:
 					ports = ET.Element("td")
 					cpee = ET.Element("td")
 
-					host.text = hostCpe[0]
+					host.text = hostCpe
 					cpee.text = cpe
 
 					ports.text = "(Unknown)"
-					for hostCpePort in hostCpePorts:
-						if hostCpePort["host"] == hostCpe[0] and hostCpePort["cpe"] == cpe:
-							ports.text = str.join(", ", hostCpePort["ports"])
-							break
+					if (hostCpe, cpe) in hostCpePorts:
+						ports.text = str.join(", ", hostCpePorts[(hostCpe, cpe)])
 
 					row.append(host)
 					row.append(ports)
@@ -414,4 +441,7 @@ class ProcReport:
 						row.append(j)
 					perhosts.append(row)
 
-		return b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + b"\n"
+		rslt: bytes = b"<!DOCTYPE html>\n" + ET.tostring(baseHtml, encoding="UTF-8") + b"\n"
+		try: ctx.session.result.report_html = rslt.decode("utf-8")
+		except Exception as e: ctx.logger.Log(Level.ERROR, f"[Report] Failed to store HTML result: {e}")
+		return rslt

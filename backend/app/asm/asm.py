@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+from typing import cast
 import xml.etree.ElementTree as ET
 
 import asm.proc_cve as CVE
@@ -67,24 +68,28 @@ class Asm:
 		# Nmap
 
 		# 後の報告のためにCVEデータを格納する
-		cveData = []
+		session.result.cve_data = []
 
 		# ホストとそのホストに対応するCPE文字列の組
-		# [
-		#   ("ホスト0", {"CPE文字列0", "CPE文字列1", ...}),
-		#   ("ホスト1", {"CPE文字列0", "CPE文字列1", ...}), ...
-		# ]
+		# {
+		#   "ホスト0": {"CPE文字列0", "CPE文字列1", ...},
+		#   "ホスト1": {"CPE文字列0", "CPE文字列1", ...}, ...
+		# }
 		# のような形式になる
-		hostCpes = []
+		# dict[str, set[str]]
+		# キー: ホスト名, 値: CPE文字列の配列
+		session.result.host_cpes = dict()
 
-		# ホストとCPE文字列に対応するプロコトル名とポート番号
-		# 一つのサービスに複数のポートが割り当てられていることもあるためこうする
-		# [
-		#   {"host": "ホスト0", "cpe": "CPE文字列0", "ports": ["プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...]},
-		#   {"host": "ホスト1", "cpe": "CPE文字列1", "ports": ["プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...]}, ...
-		# ]
+		# ある「ホストとCPE文字列の組」に対応するプロコトル名とポート番号のセット
+		# 一つのサービスに複数のポートが割り当てられていることもあるためportsはsetにする
+		# {
+		#   ("ホスト0", "CPE文字列0"): {"プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...},
+		#   ("ホスト1", "CPE文字列1"): {"プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...}, ...
+		# }
 		# のような形式になる
-		hostCpePorts = []
+		# dict[tuple[str, str], set[str]]
+		# キー: ホスト名とCPE文字列のタプル(タプル要素0: ホスト名, 要素1: CPE文字列), 値: プロコトルとポートの配列
+		session.result.host_cpe_ports = dict()
 
 		if session.config.enable_nmap:
 			try:
@@ -131,25 +136,26 @@ class Asm:
 							xmlCpes = xmlPort.findall("./service/cpe")
 							# まとめる
 							s = set(map(lambda i:i.text, xmlCpes))
+							if theName in session.result.host_cpes:
+								s |= session.result.host_cpes[theName]
 							s.discard("")
-							hostCpes.append((theName, s))
+							s.discard(None)
+							# To make pyright happy, cast is needed for now
+							s = cast(set[str], s)
+							session.result.host_cpes[theName] = s
 
 							for ss in s:
-								found = False
-								for hostCpePort in hostCpePorts:
-									if hostCpePort["host"] == theName and hostCpePort["cpe"] == ss:
-										hostCpePort["ports"].append(p)
-										found = True
-										break
-								if not found:
-									hostCpePorts.append({"host": theName, "cpe": ss, "ports": [p]})
+								if (theName, ss) in session.result.host_cpe_ports:
+									session.result.host_cpe_ports[(theName, ss)].add(p)
+								else:
+									session.result.host_cpe_ports[(theName, ss)] = set([p])
 
 					# 空の文字列が入る場合があるので取り除く
 					cpes.discard("")
-					cveData = []
+					session.result.cve_data = []
 					try:
-						cveData = CVE.ProcCVE(ctx, cpes)
-						Log(Level.INFO, f"[CVE] Found {len(cveData)} CVE(s)")
+						session.result.cve_data = CVE.ProcCVE(ctx, cpes)
+						Log(Level.INFO, f"[CVE] Found {len(session.result.cve_data)} CVE(s)")
 					except Exception as e:
 						Log(Level.ERROR, f"[CVE] Searching CVE failed: {e}")
 					finally:
@@ -175,9 +181,9 @@ class Asm:
 			try:
 				# CVE情報はCVSS3スコアの昇順でソートされているためリバースする
 				# これにより処理件数を制限した場合でもCVSS3スコアの高い方が優先されてレポートされる
-				cveData.reverse()
+				session.result.cve_data.reverse()
 				# レポートする
-				Report.ProcReport(ctx).makereport(ctx, cveData, hostCpes, hostCpePorts)
+				Report.ProcReport(ctx).makereport()
 				
 			except Exception as e:
 				Log(Level.ERROR, f"[Report] Report failed: {e}")

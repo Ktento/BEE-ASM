@@ -1,13 +1,39 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from pathlib import Path
-from typing import final
+from typing import Any, final
 from uuid import UUID, uuid4
 
 from log import Logger
 from schemes.config import ConfigModel
 from schemes.progress import ProgressModel
 from schemes.serverconfig import ServerConfigModel
+
+@final
+class Result():
+	# Nmap
+	nmap_stdout: str = ""
+	nmap_stderr: str = ""
+
+	# subfinder
+	subfinder: dict[str, str] = dict()
+	"""キー: ドメイン名, 値: IPアドレス"""
+
+	# CVE
+	cves: dict[str, str] = dict()
+	"""キー: CPE, 値: CVE情報のJSON"""
+	cve_data: list[Any] = []
+	host_cpes: dict[str, set[str]] = dict()
+	host_cpe_ports: dict[tuple[str, str], set[str]] = dict()
+
+	# DuckDuckGo
+	web: str = ""
+
+	# Report
+	report_csv_all: str = ""
+	report_csv_per: str = ""
+	report_html: str = ""
+	report_sent: bool = False
 
 @final
 class Session():
@@ -19,6 +45,7 @@ class Session():
 	__active: bool
 	__started_at: datetime
 	__progress: ProgressModel | None
+	__result: Result
 
 	def __init__(self, config: ConfigModel):
 		self.__uuid = uuid4()
@@ -30,6 +57,7 @@ class Session():
 		self.__active = True
 		self.__started_at = datetime.now()
 		self.__progress = None
+		self.__result = Result()
 
 	@property
 	def uuid(self): return self.__uuid
@@ -51,6 +79,9 @@ class Session():
 
 	@property
 	def started_at(self): return self.__started_at
+
+	@property
+	def result(self): return self.__result
 
 	@property
 	def progress(self): return self.__progress

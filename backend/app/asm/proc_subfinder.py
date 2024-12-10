@@ -7,8 +7,10 @@ from log import Level
 def ProcSubfinder(context: Context) -> list:
 	context.logger.Log(Level.INFO, f"[subfinder] Scanning with subfinder...")
 	# 検出できたドメインを保存するリスト
-	domains = []
-	ips = []
+	domains: list[str] = []
+	ips: list[str] = []
+	dmip: dict[str, str] = dict()
+	"""キー: ドメイン名, 値: IPアドレス"""
 
 	try:
 		# subfinderを実行するコマンドを構築
@@ -34,8 +36,10 @@ def ProcSubfinder(context: Context) -> list:
 				domain, ip, _ = line.split(",", 2)  # ドメイン名とIPアドレスを取得
 				domains.append(domain)
 				ips.append(ip)
+				dmip[domain] = ip
 
 		context.logger.Log(Level.INFO, f'[subfinder] Scan finished.')
+		context.session.result.subfinder = dmip
 		return domains
 	except subprocess.CalledProcessError as e:
 		context.logger.Log(Level.ERROR, f"[subfinder] Scan failed: {e}")

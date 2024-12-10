@@ -22,21 +22,19 @@ def ProcDDG(context: Context) -> None:
 
 	# 実際に検索する
 	context.logger.Log(Level.INFO, f'[DDG] Searching "{query}" on DuckDuckGo...')
-	print("aaaa")
 	try:
-		print("aaaab")
 		fname = f"{context.savedir}/web_search_result.json"
-		print("aaaac")
 		with open(fname, "w") as f:
-			print("aaaad")
 			results = None
-			ddd = DDGS()
-			print(ddd)
-			results = ddd.text(query, max_results=context.config.web_max_results, backend=context.config.web_backend, region=context.config.web_region)
-			print("aaaae")
+			backend = context.config.web_backend if context.config.web_backend is not None and context.config.web_backend != "" else "html"
+
+			results = DDGS().text(query, max_results=context.config.web_max_results, backend=backend, region=context.config.web_region)
+
 			context.logger.Log(Level.FATAL, f"RSLTS: {results}")
-			print(f"RRRRRR {results}")
-			f.write(json.dumps(results, ensure_ascii=False, indent="\t"))
+			j = json.dumps(results, ensure_ascii=False, indent=None)
+			try: context.session.result.web = j
+			except Exception as e: context.logger.Log(Level.ERROR, f"[DDG] Failed to store result: {e}")
+			f.write(j)
 		context.logger.Log(Level.INFO, f"[DDG] Wrote search result to {fname}.")
 	except Exception as e:
 		context.logger.Log(Level.ERROR, f"[DDG] Search failed: {e}")
