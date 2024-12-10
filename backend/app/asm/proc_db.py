@@ -21,6 +21,7 @@ def connect_to_db(context: Context):
 
 #CVE_idをもとにCVEテーブルからaiの説明を検索する関数
 def select_cve_ai(context:Context,connection, cve_id):
+    print("AAAAAAAAaaa")
     try:
         # カーソルを作成してクエリを実行
         cursor = connection.cursor()
@@ -67,7 +68,6 @@ def insert_sql(context:Context,connection, table_name, columns, values):
         
         # 変更をデータベースにコミット
         connection.commit()
-        
     except Exception as e:
         connection.rollback()  # エラー時にロールバック
         context.logger.Log(Level.ERROR, f"[DB] DB insert ERROR  for SQL: {sql_query}. ERROR: {e}")
