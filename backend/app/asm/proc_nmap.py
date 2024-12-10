@@ -5,7 +5,6 @@ from context import Context
 from log import Level
 
 def ProcNmap(context: Context) -> str:
-	with open("nmap.xml", "r") as f: return f.read()
 	xml = ""
 	try:
 		context.logger.Log(Level.INFO, f"[Nmap] Scanning with Nmap...")
