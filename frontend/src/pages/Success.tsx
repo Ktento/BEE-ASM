@@ -14,7 +14,7 @@ import { useLocation } from "react-router-dom";
 import { Result } from "../types/Restult";
 import { ResultPanel } from "../components/ResultPanel";
 import { ApiService } from "../services/ApiService";
-
+import { ResultGraphCvss } from "../components/ResultGraphCvss";
 function Success() {
   const location = useLocation();
   const sessionId = location.state?.sessionId;
@@ -67,6 +67,7 @@ function Success() {
     <Box as={"main"} p={5}>
       <Box p={5} display={"flex"} justifyContent={"space-between"}>
         <Heading>送信が成功しました！</Heading>
+        {result && <ResultGraphCvss result={result} />}
         <Button colorScheme="purple" onClick={() => setIsOpen(true)}>
           ホームに戻る
         </Button>
