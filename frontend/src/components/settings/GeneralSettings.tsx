@@ -1,5 +1,4 @@
 import { Box, Button, Checkbox, FormControl, Input } from "@yamada-ui/react";
-import ConfigCard from "../ConfigCard";
 import { SettingProps } from "../ConfigPanel";
 
 export const GeneralSettings = (props: SettingProps) => {
@@ -37,7 +36,6 @@ export const GeneralSettings = (props: SettingProps) => {
               placeholder="domain"
               value={host}
               onChange={(e) => handleChangeTargetHost(index, e.target.value)}
-              width={"70%"}
             />
           </Box>
         ))}
@@ -50,28 +48,24 @@ export const GeneralSettings = (props: SettingProps) => {
               placeholder="exclude_hosts"
               value={host}
               onChange={(e) => handleChangeExcludeHost(index, e.target.value)}
-              width={"70%"}
               mr={2}
             />
           </Box>
         ))}
         <Button onClick={handleAddExcludeHost}>+</Button>
       </FormControl>
-      <ConfigCard
-        content={
-          <Checkbox
-            isChecked={props.config.color_output}
-            onChange={(e) =>
-              props.setConfig({
-                ...props.config,
-                color_output: e.target.checked,
-              })
-            }
-          >
-            標準出力の色付けを有効にしますか?
-          </Checkbox>
+
+      <Checkbox
+        isChecked={props.config.color_output}
+        onChange={(e) =>
+          props.setConfig({
+            ...props.config,
+            color_output: e.target.checked,
+          })
         }
-      />
+      >
+        標準出力の色付けを有効にしますか?
+      </Checkbox>
     </>
   );
 };
