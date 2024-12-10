@@ -4,7 +4,6 @@ import {
   Checkbox,
   FormControl,
   Input,
-  Text,
   useBreakpoint,
 } from "@yamada-ui/react";
 import { SettingProps } from "../ConfigPanel";
@@ -39,7 +38,6 @@ export const GeneralSettings = (props: SettingProps) => {
 
   return (
     <>
-      <Text>{breakpoint}aaaaa</Text>
       <FormControl label="対象ホスト名" py={5}>
         {props.config.target_hosts.map((host, index) => (
           <Box key={index} alignItems={"center"} mb={2}>
