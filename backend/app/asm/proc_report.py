@@ -177,6 +177,7 @@ class ProcReport:
 							result=DB.select_cve_ai(context,connection,c["id"])
 							if result:
 								c["gemini"]=result
+								print("search scces!")
 								DB.close_connection(context,connection)
 							#接続できない　or 存在しない場合はGeminiにアクセス
 							#Geminiによるレビューを受けたあとDBにその情報を登録
