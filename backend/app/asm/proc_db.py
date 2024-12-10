@@ -61,10 +61,10 @@ def insert_sql(context:Context,connection, table_name, columns, values):
             
             # SQL文の生成
             sql_query = f'INSERT INTO "{table_name}" ({columns_part}) VALUES ({values_part});'
-            
+            print(sql_query)
             # SQLを実行
             cursor.execute(sql_query)
-        
+            print("データが挿入されました。")
         # 変更をデータベースにコミット
         connection.commit()
     except Exception as e:
