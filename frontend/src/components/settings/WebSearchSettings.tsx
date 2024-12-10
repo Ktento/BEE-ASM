@@ -5,11 +5,14 @@ import {
   Input,
   Radio,
   RadioGroup,
+  useBreakpoint,
 } from "@yamada-ui/react";
 import { SettingProps } from "../ConfigPanel";
 import { SearchRegion } from "../../types/enums/SearchRegion";
 
 export const WebSearchSettings = (props: SettingProps) => {
+  const breakpoint = useBreakpoint();
+
   return (
     <>
       <Checkbox
@@ -36,6 +39,7 @@ export const WebSearchSettings = (props: SettingProps) => {
                   web_query: e.target.value,
                 })
               }
+              width={breakpoint != "sm" ? "50%" : "full"}
             />
           </FormControl>
           <RadioGroup
@@ -61,6 +65,7 @@ export const WebSearchSettings = (props: SettingProps) => {
                   web_max_results: parseInt(e.target.value),
                 })
               }
+              width={"20%"}
             />
           </FormControl>
         </Box>

@@ -6,10 +6,12 @@ import {
   Input,
   Button,
   Text,
+  useBreakpoint,
 } from "@yamada-ui/react";
 import { SettingProps } from "../ConfigPanel";
 
 export const ReportSettings = (props: SettingProps) => {
+  const breakpoint = useBreakpoint();
   const [year, setYear] = useState(props.config.report_since.slice(0, 4));
   const [month, setMonth] = useState(props.config.report_since.slice(5, 7));
   const [day, setDay] = useState(props.config.report_since.slice(8, 10));
@@ -114,7 +116,7 @@ export const ReportSettings = (props: SettingProps) => {
                   placeholder="email"
                   value={email}
                   onChange={(e) => handleChangeEmail(index, e.target.value)}
-                  width="auto"
+                  width={breakpoint != "sm" ? "50%" : "full"}
                   mr={2}
                 />
                 <Button onClick={() => handleRemoveEmail(index)}>-</Button>
@@ -132,7 +134,7 @@ export const ReportSettings = (props: SettingProps) => {
                   report_limit: parseInt(e.target.value),
                 })
               }
-              width={"auto"}
+              width={"20%"}
             />
           </FormControl>
         </Box>
