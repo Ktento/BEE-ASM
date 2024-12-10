@@ -171,12 +171,12 @@ class ProcReport:
 				try:
 					#DB利用
 					if self.__context.session.server_config.enable_db:
-						print("self AAAa")
 						connection = DB.connect_to_db(context)
-						print("connectDB")
 						if connection:
+							print("coonnection!!")
 							#CVE_IDを元にDBに格納されているGeminiの説明を取得
 							result=DB.select_cve_ai(connection,c["id"])
+							print(result)
 							if result:
 								c["gemini"]=result
 								DB.close_connection(connection)
@@ -187,6 +187,7 @@ class ProcReport:
 								DB.close_connection(connection)
 								connection2 = DB.connect_to_db(context)
 								if connection2:
+									print("connection2")
 									c["gemini"] = self.review_description(c["summary"])
 									columns = ["CVE_id", "CVE_description", "AI_analysis", "CPE","published"]
 									cvedata=[
