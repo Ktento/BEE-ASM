@@ -9,6 +9,7 @@ import { ApiService } from "../services/ApiService";
 
 function Index() {
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [config, setConfig] = useState<Config>({
     target_hosts: [""],
     exclude_hosts: [""],
@@ -17,8 +18,8 @@ function Index() {
     enable_subfinder: true,
     enable_reporting: true,
     report_emails: [""],
-    report_limit: 0,
-    report_since: "1970-01-01T00:00:00",
+    report_limit: 10,
+    report_since: "2024-01-01T00:00:00",
     report_min_cvss3: 0,
     report_csv_encoding: "",
     report_enable_gemini: true,
@@ -47,7 +48,12 @@ function Index() {
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     if (!validateConfig(config)) {
+      setIsSubmitting(false);
       return;
     }
 
@@ -56,7 +62,10 @@ function Index() {
       config
     );
 
-    if (!data) return;
+    if (!data) {
+      setIsSubmitting(false);
+      return;
+    }
 
     const sessionId = data.session_id;
     console.log(sessionId);
@@ -65,7 +74,10 @@ function Index() {
       session_id: sessionId,
     });
 
-    if (!exeRes) return;
+    if (!exeRes) {
+      setIsSubmitting(false);
+      return;
+    }
 
     navigate("/success", { state: { sessionId } });
   };
@@ -84,7 +96,12 @@ function Index() {
           )}
 
           <Box display={"flex"} justifyContent={"end"}>
-            <Button type="submit" colorScheme="purple" variant="outline">
+            <Button
+              type="submit"
+              colorScheme="purple"
+              variant="outline"
+              disabled={isSubmitting}
+            >
               実行
             </Button>
           </Box>
