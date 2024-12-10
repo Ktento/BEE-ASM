@@ -191,8 +191,10 @@ class ProcReport:
 									cvedata=[
 										(c["id"],c["summary"],c["gemini"],c["cpe"],c["published_str"])
 									]
-									print(cvedata)
-									DB.insert_sql(context,connection,"CVE",columns,cvedata)
+									try:
+										DB.insert_sql(context,connection,"CVE",columns,cvedata)
+									except Exception as e:
+										print("INSERT ERROR",e)
 									DB.close_connection(context,connection)
 								else:
 									context.logger.Log(Level.ERROR,f"[DB] Could not reconnect to store CVE {c['id']} after Gemini analysis.")
