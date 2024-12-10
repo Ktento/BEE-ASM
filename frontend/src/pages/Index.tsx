@@ -9,6 +9,7 @@ import { ApiService } from "../services/ApiService";
 
 function Index() {
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [config, setConfig] = useState<Config>({
     target_hosts: [""],
     exclude_hosts: [""],
@@ -47,14 +48,24 @@ function Index() {
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateConfig(config)) return;
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    if (!validateConfig(config)) {
+      setIsSubmitting(false);
+      return;
+    }
 
     const data: CreateSessionRes | null = await ApiService.getInstance().post(
       "session/create",
       config
     );
 
-    if (!data) return;
+    if (!data) {
+      setIsSubmitting(false);
+      return;
+    }
 
     const sessionId = data.session_id;
     console.log(sessionId);
@@ -63,7 +74,10 @@ function Index() {
       session_id: sessionId,
     });
 
-    if (!exeRes) return;
+    if (!exeRes) {
+      setIsSubmitting(false);
+      return;
+    }
 
     navigate("/success", { state: { sessionId } });
   };
@@ -82,7 +96,12 @@ function Index() {
           )}
 
           <Box display={"flex"} justifyContent={"end"}>
-            <Button type="submit" colorScheme="purple" variant="outline">
+            <Button
+              type="submit"
+              colorScheme="purple"
+              variant="outline"
+              disabled={isSubmitting}
+            >
               実行
             </Button>
           </Box>

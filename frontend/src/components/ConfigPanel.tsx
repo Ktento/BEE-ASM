@@ -15,7 +15,7 @@ export interface SettingProps {
 
 function ConfigPanel(props: SettingProps) {
   return (
-    <Accordion multiple={true} defaultIndex={0} py={4}>
+    <Accordion multiple={true} defaultIndex={[0]} py={4}>
       <AccordionItem label="全体設定">
         <GeneralSettings config={props.config} setConfig={props.setConfig} />
       </AccordionItem>
