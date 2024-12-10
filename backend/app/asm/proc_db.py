@@ -21,7 +21,6 @@ def connect_to_db(context: Context):
 
 #CVE_idをもとにCVEテーブルからaiの説明を検索する関数
 def select_cve_ai(context:Context,connection, cve_id):
-    print("AAAAAAAAaaa")
     try:
         # カーソルを作成してクエリを実行
         cursor = connection.cursor()
