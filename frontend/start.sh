@@ -1,2 +1,2 @@
 docker build -t frontend .
-docker run -it -p 80:80 frontend
+docker run -d -it -p 80:80 frontend
