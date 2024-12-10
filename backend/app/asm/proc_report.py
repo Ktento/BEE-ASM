@@ -173,10 +173,8 @@ class ProcReport:
 					if self.__context.session.server_config.enable_db:
 						connection = DB.connect_to_db(context)
 						if connection:
-							print(connection)
 							#CVE_IDを元にDBに格納されているGeminiの説明を取得
 							result=DB.select_cve_ai(context,connection,c["id"])
-							print(result)
 							if result:
 								c["gemini"]=result
 								DB.close_connection(context,connection)
