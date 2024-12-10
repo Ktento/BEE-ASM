@@ -174,15 +174,16 @@ class ProcReport:
 						connection = DB.connect_to_db(context)
 						if connection:
 							#CVE_IDを元にDBに格納されているGeminiの説明を取得
-							result=DB.select_cve_ai(connection,c["id"])
+							result=DB.select_cve_ai(context,connection,c["id"])
 							if result:
 								c["gemini"]=result
-								DB.close_connection(connection)
+								print("search scces!")
+								DB.close_connection(context,connection)
 							#接続できない　or 存在しない場合はGeminiにアクセス
 							#Geminiによるレビューを受けたあとDBにその情報を登録
 							else:
 								#一度connectionをclose(他セッションとのトランザクション競合を避けるため)
-								DB.close_connection(connection)
+								DB.close_connection(context,connection)
 								connection2 = DB.connect_to_db(context)
 								if connection2:
 									c["gemini"] = self.review_description(c["summary"])
@@ -190,8 +191,11 @@ class ProcReport:
 									cvedata=[
 										(c["id"],c["summary"],c["gemini"],c["cpe"],c["published_str"])
 									]
-									DB.insert_sql(context,connection,"CVE",columns,cvedata)
-									DB.close_connection(connection)
+									try:
+										DB.insert_sql(context,connection2,"CVE",columns,cvedata)
+									except Exception as e:
+										context.logger.Log(Level.ERROR,f"[DB] INSERT ERROR {e}")
+									DB.close_connection(context,connection2)
 								else:
 									context.logger.Log(Level.ERROR,f"[DB] Could not reconnect to store CVE {c['id']} after Gemini analysis.")
 					else:

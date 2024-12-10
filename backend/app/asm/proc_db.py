@@ -43,6 +43,7 @@ def select_cve_ai(context:Context,connection, cve_id):
 
 #insertする関数(connection:ないと実行できない(connectしたかのチェック)、table_name:テーブルの名前、columns:1次元配列で列名入力、values:2次元配列でフィールドを入力)
 def insert_sql(context:Context,connection, table_name, columns, values):
+    cursor = None 
     try:
         cursor = connection.cursor()
         
@@ -61,18 +62,16 @@ def insert_sql(context:Context,connection, table_name, columns, values):
             
             # SQL文の生成
             sql_query = f'INSERT INTO "{table_name}" ({columns_part}) VALUES ({values_part});'
-            
             # SQLを実行
             cursor.execute(sql_query)
-        
         # 変更をデータベースにコミット
         connection.commit()
-        
     except Exception as e:
         connection.rollback()  # エラー時にロールバック
         context.logger.Log(Level.ERROR, f"[DB] DB insert ERROR  for SQL: {sql_query}. ERROR: {e}")
     finally:
-        cursor.close()  # カーソルを閉じる
+        if cursor:
+            cursor.close()  # カーソルを閉じる
 
 
 
