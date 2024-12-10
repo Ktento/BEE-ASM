@@ -88,8 +88,18 @@ class Asm:
 		# }
 		# のような形式になる
 		# dict[tuple[str, str], set[str]]
-		# キー: ホスト名とCPE文字列のタプル(タプル要素0: ホスト名, 要素1: CPE文字列), 値: プロコトルとポートの配列
+		# キー: ホスト名とCPE文字列のタプル(タプル要素0: ホスト名, 要素1: CPE文字列), 値: プロコトルとポートのセット
 		session.result.host_cpe_ports = dict()
+
+		# ホストとそのホストに対応するプロトコルとポート番号
+		# {
+		#   "ホスト0": {"プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...},
+		#   "ホスト1": {"プロコトル名0/ポート番号0", "プロコトル名1/ポート番号1", ...}, ...
+		# }
+		# のような形式になる
+		# dict[str, set[str]]
+		# キー: ホスト名, 値: プロトコルとポート番号のセット
+		session.result.host_ports = dict()
 
 		if session.config.enable_nmap:
 			try:
@@ -97,61 +107,66 @@ class Asm:
 				nm = Nmap.ProcNmap(ctx)
 				session.progress.task_progresses["nmap"] = 1.0
 
+				# NmapはCPE文字列まで返してくれるのでそれを使う
+				cpes = set()
+
+				# NmapのCPE文字列を修正
+				def fixcpe(input):
+					try:
+						fixes = {
+							"cpe:/a:microsoft:iis:10.0": "cpe:/a:microsoft:internet_information_services:10.0",
+						}
+						return fixes[input] if input in fixes else input
+					except Exception:
+						return input
+
+				# Nmapが出力したXMLドキュメントから列挙する
+				elm = ET.fromstring(nm)
+				xmlCpes = elm.findall("./host/ports/port/service/cpe")
+				for i in xmlCpes:
+					i.text = fixcpe(i.text)
+					cpes.add(i.text)
+
+				for host in elm.findall("./host"):
+					# ユーザー入力のホスト名があればそれを使う
+					hostnameUser = host.find("./hostnames/hostname[@type='user']")
+					if hostnameUser is not None: hostnameUser = hostnameUser.attrib["name"]
+					# 無ければIPアドレスを使う
+					hostIp = host.find("./address")
+					if hostIp is not None: hostIp = hostIp.attrib["addr"]
+					# それも無ければ不明として扱う
+					theName = hostnameUser if hostnameUser is not None else hostIp if hostIp is not None else "<hostname/address unknown>"
+
+					xmlPorts = host.findall("./ports/port")
+					for xmlPort in xmlPorts:
+						p = f'{xmlPort.attrib["protocol"]}/{xmlPort.attrib["portid"]}'
+
+						if theName in session.result.host_ports:
+							session.result.host_ports[theName].add(p)
+						else:
+							session.result.host_ports[theName] = set([p])
+
+						xmlCpes = xmlPort.findall("./service/cpe")
+						# まとめる
+						s = set(map(lambda i:i.text, xmlCpes))
+						if theName in session.result.host_cpes:
+							s |= session.result.host_cpes[theName]
+						s.discard("")
+						s.discard(None)
+						# To make pyright happy, cast is needed for now
+						s = cast(set[str], s)
+						session.result.host_cpes[theName] = s
+
+						for ss in s:
+							if (theName, ss) in session.result.host_cpe_ports:
+								session.result.host_cpe_ports[(theName, ss)].add(p)
+							else:
+								session.result.host_cpe_ports[(theName, ss)] = set([p])
+
+				# 空の文字列が入る場合があるので取り除く
+				cpes.discard("")
 				# CVE検索機能が有効なら検索する
 				if session.config.search_cve:
-					# NmapはCPE文字列まで返してくれるのでそれを使う
-					cpes = set()
-
-					# NmapのCPE文字列を修正
-					def fixcpe(input):
-						try:
-							fixes = {
-								"cpe:/a:microsoft:iis:10.0": "cpe:/a:microsoft:internet_information_services:10.0",
-							}
-							return fixes[input] if input in fixes else input
-						except Exception:
-							return input
-
-					# Nmapが出力したXMLドキュメントから列挙する
-					elm = ET.fromstring(nm)
-					xmlCpes = elm.findall("./host/ports/port/service/cpe")
-					for i in xmlCpes:
-						i.text = fixcpe(i.text)
-						cpes.add(i.text)
-
-					for host in elm.findall("./host"):
-						# ユーザー入力のホスト名があればそれを使う
-						hostnameUser = host.find("./hostnames/hostname[@type='user']")
-						if hostnameUser is not None: hostnameUser = hostnameUser.attrib["name"]
-						# 無ければIPアドレスを使う
-						hostIp = host.find("./address")
-						if hostIp is not None: hostIp = hostIp.attrib["addr"]
-						# それも無ければ不明として扱う
-						theName = hostnameUser if hostnameUser is not None else hostIp if hostIp is not None else "<hostname/address unknown>"
-
-						xmlPorts = host.findall("./ports/port")
-						for xmlPort in xmlPorts:
-							p = f'{xmlPort.attrib["protocol"]}/{xmlPort.attrib["portid"]}'
-
-							xmlCpes = xmlPort.findall("./service/cpe")
-							# まとめる
-							s = set(map(lambda i:i.text, xmlCpes))
-							if theName in session.result.host_cpes:
-								s |= session.result.host_cpes[theName]
-							s.discard("")
-							s.discard(None)
-							# To make pyright happy, cast is needed for now
-							s = cast(set[str], s)
-							session.result.host_cpes[theName] = s
-
-							for ss in s:
-								if (theName, ss) in session.result.host_cpe_ports:
-									session.result.host_cpe_ports[(theName, ss)].add(p)
-								else:
-									session.result.host_cpe_ports[(theName, ss)] = set([p])
-
-					# 空の文字列が入る場合があるので取り除く
-					cpes.discard("")
 					session.result.cve_data = []
 					try:
 						session.result.cve_data = CVE.ProcCVE(ctx, cpes)
