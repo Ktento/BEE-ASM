@@ -185,7 +185,6 @@ class ProcReport:
 								DB.close_connection(context,connection)
 								connection2 = DB.connect_to_db(context)
 								if connection2:
-									print("connection2")
 									c["gemini"] = self.review_description(c["summary"])
 									columns = ["CVE_id", "CVE_description", "AI_analysis", "CPE","published"]
 									cvedata=[
@@ -194,7 +193,7 @@ class ProcReport:
 									try:
 										DB.insert_sql(context,connection2,"CVE",columns,cvedata)
 									except Exception as e:
-										print("INSERT ERROR",e)
+										context.logger.Log(Level.ERROR,f"[DB] INSERT ERROR {e}")
 									DB.close_connection(context,connection2)
 								else:
 									context.logger.Log(Level.ERROR,f"[DB] Could not reconnect to store CVE {c['id']} after Gemini analysis.")
