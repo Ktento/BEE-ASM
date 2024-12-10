@@ -188,10 +188,10 @@ class ProcReport:
 									print("connection2")
 									c["gemini"] = self.review_description(c["summary"])
 									columns = ["CVE_id", "CVE_description", "AI_analysis", "CPE","published"]
-									print(c["summary"])
 									cvedata=[
 										(c["id"],c["summary"],c["gemini"],c["cpe"],c["published_str"])
 									]
+									print(cvedata)
 									DB.insert_sql(context,connection,"CVE",columns,cvedata)
 									DB.close_connection(context,connection)
 								else:
