@@ -1,8 +1,17 @@
-import { Box, Button, Checkbox, FormControl, Input } from "@yamada-ui/react";
-import ConfigCard from "../ConfigCard";
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControl,
+  Input,
+  Text,
+  useBreakpoint,
+} from "@yamada-ui/react";
 import { SettingProps } from "../ConfigPanel";
 
 export const GeneralSettings = (props: SettingProps) => {
+  const breakpoint = useBreakpoint();
+
   const handleChangeTargetHost = (index: number, value: string) => {
     const newHosts = [...props.config.target_hosts];
     newHosts[index] = value;
@@ -30,6 +39,7 @@ export const GeneralSettings = (props: SettingProps) => {
 
   return (
     <>
+      <Text>{breakpoint}aaaaa</Text>
       <FormControl label="対象ホスト名" py={5}>
         {props.config.target_hosts.map((host, index) => (
           <Box key={index} alignItems={"center"} mb={2}>
@@ -37,7 +47,7 @@ export const GeneralSettings = (props: SettingProps) => {
               placeholder="domain"
               value={host}
               onChange={(e) => handleChangeTargetHost(index, e.target.value)}
-              width={"70%"}
+              width={breakpoint != "sm" ? "50%" : "full"}
             />
           </Box>
         ))}
@@ -50,28 +60,25 @@ export const GeneralSettings = (props: SettingProps) => {
               placeholder="exclude_hosts"
               value={host}
               onChange={(e) => handleChangeExcludeHost(index, e.target.value)}
-              width={"70%"}
               mr={2}
+              width={breakpoint != "sm" ? "50%" : "full"}
             />
           </Box>
         ))}
         <Button onClick={handleAddExcludeHost}>+</Button>
       </FormControl>
-      <ConfigCard
-        content={
-          <Checkbox
-            isChecked={props.config.color_output}
-            onChange={(e) =>
-              props.setConfig({
-                ...props.config,
-                color_output: e.target.checked,
-              })
-            }
-          >
-            標準出力の色付けを有効にしますか?
-          </Checkbox>
+
+      <Checkbox
+        isChecked={props.config.color_output}
+        onChange={(e) =>
+          props.setConfig({
+            ...props.config,
+            color_output: e.target.checked,
+          })
         }
-      />
+      >
+        標準出力の色付けを有効にしますか?
+      </Checkbox>
     </>
   );
 };
