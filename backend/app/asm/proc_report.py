@@ -170,7 +170,7 @@ class ProcReport:
 			for c in cve_data_array[:self.__context.config.report_limit]:
 				try:
 					#DB利用
-					if self.__context.session.enable_db:
+					if self.__context.session.server_config.enable_db:
 						connection = DB.connect_to_db(context)
 						if connection:
 							#CVE_IDを元にDBに格納されているGeminiの説明を取得
