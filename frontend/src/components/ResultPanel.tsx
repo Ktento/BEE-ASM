@@ -33,7 +33,15 @@ export const ResultPanel = (props: Props) => {
         const relatedCpes = hostCpeMapping[host];
 
         return (
-          <Link to={`/detail`} state={{ cves: result.cve?.cves }} key={host}>
+          <Link
+            to={`/detail`}
+            state={{
+              cves: result.cve?.cves,
+              host: host,
+              cpes: relatedCpes,
+            }}
+            key={host}
+          >
             <Box key={host} m={2} p={4} borderWidth="1px" borderRadius="lg">
               <Heading size="md">{host}</Heading>
               <Text fontSize="sm" color="gray.500">
