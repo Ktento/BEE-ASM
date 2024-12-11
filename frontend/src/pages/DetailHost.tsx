@@ -1,4 +1,4 @@
-import { Box, Button, Heading } from "@yamada-ui/react";
+import { Box, Button, Heading, Text } from "@yamada-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CVEInfo } from "../types/Restult";
 import { useMemo } from "react";
@@ -59,56 +59,62 @@ export const DetailHost = () => {
         </Button>
       </Box>
 
-      {cpes.map((cpe) => {
-        const targetCve: CVEInfoAndCPE[] = cpes.flatMap((cpe) =>
-          (cves[cpe] || []).map((cve) => ({
-            ...cve,
-            cpe,
-          }))
-        );
+      {cpes.length !== 0 ? (
+        cpes.map((cpe) => {
+          const targetCve: CVEInfoAndCPE[] = cpes.flatMap((cpe) =>
+            (cves[cpe] || []).map((cve) => ({
+              ...cve,
+              cpe,
+            }))
+          );
 
-        return (
-          <Table
-            columns={columns}
-            data={targetCve}
-            selectColumnProps={false}
-            key={cpe}
-            headerProps={(header) => {
-              const columnHeader = header.column.columnDef.header;
-              if (columnHeader === "CVE-ID") {
-                return {
-                  w: "150px",
-                };
-              }
-              if (columnHeader === "CVSS") {
-                return {
-                  w: "80px",
-                };
-              }
-              return {};
-            }}
-            cellProps={({ column, getValue }) => {
-              if (
-                column.columnDef.header === "CVE-ID" ||
-                column.columnDef.header === "CPE"
-              ) {
-                return {
-                  alignContent: "center",
-                  textAlign: "center",
-                };
-              }
-              if (column.columnDef.header === "CVSS") {
-                return {
-                  bg: getBackgroundColor(getValue()),
-                  alignContent: "center",
-                  textAlign: "center",
-                };
-              }
-              return {};
-            }}
-          />
-        );
-      })}
+          return (
+            <Table
+              columns={columns}
+              data={targetCve}
+              selectColumnProps={false}
+              key={cpe}
+              headerProps={(header) => {
+                const columnHeader = header.column.columnDef.header;
+                if (columnHeader === "CVE-ID") {
+                  return {
+                    w: "150px",
+                  };
+                }
+                if (columnHeader === "CVSS") {
+                  return {
+                    w: "80px",
+                  };
+                }
+                return {};
+              }}
+              cellProps={({ column, getValue }) => {
+                if (
+                  column.columnDef.header === "CVE-ID" ||
+                  column.columnDef.header === "CPE"
+                ) {
+                  return {
+                    alignContent: "center",
+                    textAlign: "center",
+                  };
+                }
+                if (column.columnDef.header === "CVSS") {
+                  return {
+                    bg: getBackgroundColor(getValue()),
+                    alignContent: "center",
+                    textAlign: "center",
+                  };
+                }
+                return {};
+              }}
+            />
+          );
+        })
+      ) : (
+        <Box display={"flex"} justifyContent={"center"}>
+          <Text>脆弱性は見つかりませんでした</Text>
+        </Box>
+      )}
     </Box>
   );
 };
