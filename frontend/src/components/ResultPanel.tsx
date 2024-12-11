@@ -1,5 +1,6 @@
 import { Box, Heading, List, ListItem, Text } from "@yamada-ui/react";
 import { HostCPEs, HostPorts, Result } from "../types/Restult";
+import { Link } from "react-router-dom";
 
 interface Props {
   result: Result;
@@ -32,51 +33,53 @@ export const ResultPanel = (props: Props) => {
         const relatedCpes = hostCpeMapping[host];
 
         return (
-          <Box key={host} m={2} p={4} borderWidth="1px" borderRadius="lg">
-            <Heading size="md">{host}</Heading>
-            <Text fontSize="sm" color="gray.500">
-              IP: {ip}
-            </Text>
-            {
-              /** ポートの表示 */
-              relatedPorts.length > 0 ? (
-                <Box mt={3}>
-                  <Heading size="sm">解放されているポート</Heading>
-                  <List>
-                    {relatedPorts.map((port, index) => (
-                      <ListItem key={index}>
-                        <Text>・ {port}</Text>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Box>
-              ) : (
-                <Text mt={3} color="green.500">
-                  このホストが解放しているポートは見つかりませんでした。
-                </Text>
-              )
-            }
+          <Link to={`/detail`} state={{ cves: result.cve?.cves }} key={host}>
+            <Box key={host} m={2} p={4} borderWidth="1px" borderRadius="lg">
+              <Heading size="md">{host}</Heading>
+              <Text fontSize="sm" color="gray.500">
+                IP: {ip}
+              </Text>
+              {
+                /** ポートの表示 */
+                relatedPorts.length > 0 ? (
+                  <Box mt={3}>
+                    <Heading size="sm">解放されているポート</Heading>
+                    <List>
+                      {relatedPorts.map((port, index) => (
+                        <ListItem key={index}>
+                          <Text>・ {port}</Text>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ) : (
+                  <Text mt={3} color="green.500">
+                    このホストが解放しているポートは見つかりませんでした。
+                  </Text>
+                )
+              }
 
-            {
-              /** CPEsの表示 */
-              relatedCpes.length > 0 ? (
-                <Box mt={3}>
-                  <Heading size="sm">関連するCPE</Heading>
-                  <List>
-                    {relatedCpes.map((cpe, index) => (
-                      <ListItem key={index}>
-                        <Text>・ CPE: {cpe}</Text>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Box>
-              ) : (
-                <Text mt={3} color="green.500">
-                  このホストに関連するCPEは見つかりませんでした。
-                </Text>
-              )
-            }
-          </Box>
+              {
+                /** CPEsの表示 */
+                relatedCpes.length > 0 ? (
+                  <Box mt={3}>
+                    <Heading size="sm">関連するCPE</Heading>
+                    <List>
+                      {relatedCpes.map((cpe, index) => (
+                        <ListItem key={index}>
+                          <Text>・ CPE: {cpe}</Text>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ) : (
+                  <Text mt={3} color="green.500">
+                    このホストに関連するCPEは見つかりませんでした。
+                  </Text>
+                )
+              }
+            </Box>
+          </Link>
         );
       })}
 
