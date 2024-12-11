@@ -73,10 +73,35 @@ export const DetailHost = () => {
             data={targetCve}
             selectColumnProps={false}
             key={"cve-table"}
+            headerProps={(header) => {
+              const columnHeader = header.column.columnDef.header;
+              if (columnHeader === "CVE-ID") {
+                return {
+                  w: "150px",
+                };
+              }
+              if (columnHeader === "CVSS") {
+                return {
+                  w: "80px",
+                };
+              }
+              return {};
+            }}
             cellProps={({ column, getValue }) => {
+              if (
+                column.columnDef.header === "CVE-ID" ||
+                column.columnDef.header === "CPE"
+              ) {
+                return {
+                  alignContent: "center",
+                  textAlign: "center",
+                };
+              }
               if (column.columnDef.header === "CVSS") {
                 return {
                   bg: getBackgroundColor(getValue()),
+                  alignContent: "center",
+                  textAlign: "center",
                 };
               }
               return {};
