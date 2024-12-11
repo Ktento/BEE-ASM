@@ -79,7 +79,7 @@ export const ResultPanel = (props: Props) => {
               </Text>
               {relatedPorts.length > 0 ? (
                 <Box mt={3}>
-                  <Heading size="sm">解放されているポート</Heading>
+                  <Heading size="sm">開放されているポート</Heading>
                   <List>
                     {relatedPorts.map((port, index) => (
                       <ListItem key={index}>
@@ -90,7 +90,7 @@ export const ResultPanel = (props: Props) => {
                 </Box>
               ) : (
                 <Text mt={3} color="green.500">
-                  このホストが解放しているポートは見つかりませんでした。
+                  このホストが開放しているポートは見つかりませんでした。
                 </Text>
               )}
 
