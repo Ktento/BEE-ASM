@@ -59,7 +59,7 @@ export const DetailHost = () => {
         </Button>
       </Box>
 
-      {cpes.map(() => {
+      {cpes.map((cpe) => {
         const targetCve: CVEInfoAndCPE[] = cpes.flatMap((cpe) =>
           (cves[cpe] || []).map((cve) => ({
             ...cve,
@@ -72,7 +72,7 @@ export const DetailHost = () => {
             columns={columns}
             data={targetCve}
             selectColumnProps={false}
-            key={"cve-table"}
+            key={cpe}
             headerProps={(header) => {
               const columnHeader = header.column.columnDef.header;
               if (columnHeader === "CVE-ID") {
