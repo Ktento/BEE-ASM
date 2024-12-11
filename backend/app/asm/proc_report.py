@@ -23,8 +23,16 @@ _HostCpePorts = dict[tuple[str, str], set[str]]
 
 class ProcReport:
 	__context: Context
+
 	def __init__(self, context: Context) -> None:
 		self.__context = context
+
+	def __set_progress(self, value: float) -> None:
+		# 巻き戻り防止
+		if self.__context.session.progress is not None \
+			and self.__context.session.progress.task_progresses["reporting"] < value:
+			self.__context.session.progress.task_progresses["reporting"] = min(max(value, 0.0), 1.0)
+
 	def review_description(self, description):
 		# print(f"description: {description}")
 		API_KEY = self.__context.session.server_config._gemini_api_key
@@ -159,11 +167,22 @@ class ProcReport:
 		host_cpe_ports = context.session.result.host_cpe_ports
 		context.logger.Log(Level.INFO, f"[Report] Getting CVE information...")
 
+		# 進捗状況の仕様
+		# ・フィルター
+		# ・Gemini評価
+		# ・HTML作成
+		# ・CSV作成
+		# ・メール送信
+		# の5つの作業にて、それぞれ終了次第パーセンテージを増やすことにする
+		progress_total = 5.0
+
 		# 諸条件に一致するCVE情報のみ抽出する
 		filtered = self.filtering_cves(cve_data_array)
 		cve_data_array = filtered["cveData"]
 		for c in cve_data_array:
 			c["gemini"] = "(Not permitted)"
+
+		self.__set_progress(1 / progress_total)
 
 		# Gemini有効時、抽出したものをレビューしてもらう
 		if self.__context.config.report_enable_gemini:
@@ -220,12 +239,16 @@ class ProcReport:
 				extra += "</li>"
 			extra += "</ul>"
 
+		self.__set_progress(2 / progress_total)
+
 		# HTML文書作成
 		html = self.mkhtml(context, cve_data_array, host_cpes, host_cpe_ports, extra)
 		try:
 			with open(f"{context.savedir}/cve_report.html", "wb") as f: f.write(html)
 		except Exception as e:
 			context.logger.Log(Level.ERROR, f"[Report] Failed to write the HTML report to file: {e}")
+
+		self.__set_progress(3 / progress_total)
 
 		# 全ホストのCVEを格納するCSVのファイル名
 		csv_filename_all = f"{context.savedir}/cve_report_all.csv"
@@ -246,11 +269,15 @@ class ProcReport:
 				context.session.result.report_csv_per = csvfile_per.read()
 		except Exception as e: context.logger.Log(Level.ERROR, f"[Report] Failed to store CVS results: {e}")
 
+		self.__set_progress(4 / progress_total)
+
 		# CSVを添付してEメール送信
 		context.logger.Log(Level.INFO, f"[Report] Sending mail...")
 		self.send_email(context, html, [csv_filename_all, csv_filename_per])
 		context.session.result.report_sent = True
 		context.logger.Log(Level.INFO, f"[Report] Mail sent.")
+
+		self.__set_progress(5 / progress_total)
 
 		# Optional: Remove the CSV file after sending the email
 		# for name in [csv_filename_all, csv_filename_per]:
