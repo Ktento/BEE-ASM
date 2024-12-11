@@ -66,7 +66,7 @@ function Success() {
   return (
     <Box as={"main"} p={5}>
       <Box p={5} display={"flex"} justifyContent={"space-between"}>
-        <Heading>送信が成功しました！</Heading>
+        <Heading>{result ? "結果" : "送信が成功しました！"}</Heading>
         {result && <ResultGraphCvss result={result} />}
         <Button colorScheme="purple" onClick={() => setIsOpen(true)}>
           ホームに戻る
@@ -87,12 +87,7 @@ function Success() {
             />
           </>
         )}
-        {result && (
-          <Box>
-            <Heading>結果</Heading>
-            <ResultPanel result={result} />
-          </Box>
-        )}
+        {result && <ResultPanel result={result} />}
       </Box>
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         <ModalHeader>ホームに戻る</ModalHeader>
