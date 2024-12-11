@@ -14,7 +14,7 @@ function Index() {
     target_hosts: [""],
     exclude_hosts: [""],
     color_output: true,
-    log_level: "",
+    log_level: "ALL",
     enable_subfinder: true,
     enable_reporting: true,
     report_emails: [""],
@@ -31,7 +31,7 @@ function Index() {
     web_query: "",
     web_region: SearchRegion.JP,
     web_max_results: 0,
-    web_backend: "",
+    web_backend: "html",
     search_cve: true,
   });
   const navigate = useNavigate();
