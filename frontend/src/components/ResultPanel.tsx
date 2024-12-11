@@ -48,14 +48,9 @@ export const ResultPanel = (props: Props) => {
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        height="300px"
-      >
+      <Box display="flex" flexDirection="column" alignItems="center" mb={8}>
+        <CircleProgress value={18} isAnimation p={5} />
         <Text>処理中です。</Text>
-        <CircleProgress value={18} isAnimation />
       </Box>
     );
   }

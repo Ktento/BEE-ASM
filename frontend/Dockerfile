@@ -1,18 +1,18 @@
 # フロントエンド用のNode.jsイメージ
-FROM node:18 AS build
+FROM oven/bun AS build
 
 # 作業ディレクトリを設定
 WORKDIR /app
 
 # package.jsonとpackage-lock.jsonをコピーして依存関係をインストール
-COPY package.json package-lock.json ./
-RUN npm install
+COPY package.json bun.lockb ./
+RUN bun install
 
 # ソースコードをコピー
 COPY . .
 
 # フロントエンドをビルド
-RUN npm run build
+RUN bun run build
 
 # 軽量なnginxイメージを使用して静的ファイルを配信
 FROM nginx:alpine
