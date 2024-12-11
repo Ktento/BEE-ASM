@@ -45,9 +45,7 @@ export const ResultPanel = (props: Props) => {
                   <List>
                     {relatedPorts.map((port, index) => (
                       <ListItem key={index}>
-                        <Text>
-                          <strong>PORT:</strong> {port}
-                        </Text>
+                        <Text>・ {port}</Text>
                       </ListItem>
                     ))}
                   </List>
@@ -67,9 +65,7 @@ export const ResultPanel = (props: Props) => {
                   <List>
                     {relatedCpes.map((cpe, index) => (
                       <ListItem key={index}>
-                        <Text>
-                          <strong>CPE:</strong> {cpe}
-                        </Text>
+                        <Text>・ CPE: {cpe}</Text>
                       </ListItem>
                     ))}
                   </List>
@@ -91,9 +87,7 @@ export const ResultPanel = (props: Props) => {
           <List>
             {Object.keys(result.cve.cves).map((key) => (
               <ListItem key={key}>
-                <Text>
-                  <strong>キー:</strong> {key}
-                </Text>
+                <Text>・ {key}</Text>
               </ListItem>
             ))}
           </List>
