@@ -17,6 +17,13 @@ export type HostInfo = {
 export type NmapResult = {
   result?: string;
   stderr?: string; // デバッグ情報やエラーメッセージ
+  host_cpes?: HostCPEs; // 追加：ホストと関連するCPE文字列
+  host_cpe_ports?: HostCPEPorts[]; // 追加：「ホストとCPEの組」に対応するプロトコルとポート番号の配列
+  host_ports: HostPorts;
+};
+
+export type HostPorts = {
+  [key: string]: string[];
 };
 
 export type CveResult = {
@@ -24,8 +31,6 @@ export type CveResult = {
     [key: string]: CVEInfo[]; // 各CPEに関連付けられたCVE情報のリスト
   };
   cve_data?: CVEData[]; // 追加：CVE情報のサブセット
-  host_cpes?: HostCPEs; // 追加：ホストと関連するCPE文字列
-  host_cpe_ports?: HostCPEPorts[]; // 追加：「ホストとCPEの組」に対応するプロトコルとポート番号の配列
 };
 
 export type CVEInfo = {

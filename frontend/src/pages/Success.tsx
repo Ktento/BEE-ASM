@@ -15,6 +15,7 @@ import { Result } from "../types/Restult";
 import { ResultPanel } from "../components/ResultPanel";
 import { ApiService } from "../services/ApiService";
 import { ResultGraphCvss } from "../components/ResultGraphCvss";
+
 function Success() {
   const location = useLocation();
   const sessionId = location.state?.sessionId;
@@ -55,7 +56,6 @@ function Success() {
   };
 
   if (!sessionId) {
-    // Todo: add sorry page
     return (
       <Box>
         <Heading>セッションが見つかりません。</Heading>
