@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Box,
   CircleProgress,
@@ -17,13 +17,18 @@ interface Props {
 export const ResultPanel = (props: Props) => {
   const { result } = props;
   const [loading, setLoading] = useState(true);
-
   const hosts: HostInfo = result.subfinder?.hosts || {};
 
   const { hostCpeMapping, hostPortMapping } = useMemo(() => {
-    const hosts = result.subfinder?.hosts || {};
+    const hosts: HostInfo = result.subfinder?.hosts || {};
     const hostCpes: HostCPEs = result.nmap?.host_cpes || {};
     const hostPorts: HostPorts = result.nmap?.host_ports || {};
+
+    if (Object.entries(hosts).length === 0) {
+      const hostKey = Object.keys(hostCpes)[0];
+      // TODO: レスポンスからtargetHostsとのIPアドレスmapからIPアドレスを入れる
+      hosts[hostKey] = "0.0.0.0";
+    }
 
     const cpeMapping: Record<string, string[]> = {};
     const portMapping: Record<string, string[]> = {};
@@ -31,16 +36,13 @@ export const ResultPanel = (props: Props) => {
       cpeMapping[host] = hostCpes[host] || [];
       portMapping[host] = hostPorts[host] || [];
     }
+    setLoading(false);
     return { hostCpeMapping: cpeMapping, hostPortMapping: portMapping };
   }, [
     result.subfinder?.hosts,
     result.nmap?.host_cpes,
     result.nmap?.host_ports,
   ]);
-
-  useEffect(() => {
-    setLoading(false);
-  }, [hostCpeMapping, hostPortMapping]);
 
   if (!Object.keys(hosts).length) {
     return <Heading>ホスト情報が見つかりません。</Heading>;
@@ -74,9 +76,12 @@ export const ResultPanel = (props: Props) => {
           >
             <Box key={host} m={2} p={4} borderWidth="1px" borderRadius="lg">
               <Heading size="md">{host}</Heading>
-              <Text fontSize="sm" color="gray.500">
-                IP: {ip}
-              </Text>
+              {ip !== "0.0.0.0" && (
+                /** targetHostのIPアドレスがわからなかった時はIPアドレス非表示にする */
+                <Text fontSize="sm" color="gray.500">
+                  IP: {ip}
+                </Text>
+              )}
               {relatedPorts.length > 0 ? (
                 <Box mt={3}>
                   <Heading size="sm">解放されているポート</Heading>
