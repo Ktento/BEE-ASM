@@ -1,11 +1,11 @@
-# フロントエンド用のNode.jsイメージ
+# フロントエンドビルド用のbunイメージ
 FROM oven/bun AS build
 
 # 作業ディレクトリを設定
 WORKDIR /app
 
-# package.jsonとpackage-lock.jsonをコピーして依存関係をインストール
-COPY package.json bun.lockb ./
+# package.jsonをコピーして依存関係をインストール
+COPY package.json ./
 RUN bun install
 
 # ソースコードをコピー
