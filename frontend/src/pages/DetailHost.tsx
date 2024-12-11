@@ -1,6 +1,12 @@
-import { Box, Button, Heading, Text } from "@yamada-ui/react";
+import { Box, Button, Heading } from "@yamada-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CVEInfo } from "../types/Restult";
+import { useMemo } from "react";
+import { Column, Table } from "@yamada-ui/table";
+
+type CVEInfoAndCPE = CVEInfo & {
+  cpe: string;
+};
 
 export const DetailHost = () => {
   const location = useLocation();
@@ -18,6 +24,32 @@ export const DetailHost = () => {
     return "#ffffff";
   };
 
+  const columns = useMemo<Column<CVEInfoAndCPE>[]>(
+    () => [
+      {
+        header: "CPE",
+        accessorKey: "cpe",
+      },
+      {
+        header: "CVE-ID",
+        accessorKey: "id",
+      },
+      {
+        header: "CVSS",
+        accessorKey: "cvss",
+      },
+      {
+        header: "発行日",
+        accessorKey: "Published",
+      },
+      {
+        header: "説明",
+        accessorKey: "summary",
+      },
+    ],
+    []
+  );
+
   return (
     <Box as={"main"} p={5}>
       <Box p={5} display={"flex"} justifyContent={"space-between"}>
@@ -27,46 +59,31 @@ export const DetailHost = () => {
         </Button>
       </Box>
 
-      {cpes.length > 0 ? (
-        <Box overflowY={"auto"}>
-          <table>
-            <thead>
-              <tr>
-                <th>CPE</th>
-                <th>CVE-ID</th>
-                <th>CVSS</th>
-                <th>発行日</th>
-                <th>説明</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cpes.map((cpe) => {
-                const targetCve = cves[cpe];
+      {cpes.map(() => {
+        const targetCve: CVEInfoAndCPE[] = cpes.flatMap((cpe) =>
+          (cves[cpe] || []).map((cve) => ({
+            ...cve,
+            cpe,
+          }))
+        );
 
-                return targetCve.map((cve) => {
-                  return (
-                    <tr key={cve.id}>
-                      <td>{cpe}</td>
-                      <td>{cve.id}</td>
-                      <td
-                        style={{
-                          backgroundColor: getBackgroundColor(cve.cvss),
-                        }}
-                      >
-                        {cve.cvss ? cve.cvss : "NONE"}
-                      </td>
-                      <td>{cve.Published}</td>
-                      <td>{cve.summary}</td>
-                    </tr>
-                  );
-                });
-              })}
-            </tbody>
-          </table>
-        </Box>
-      ) : (
-        <Text>脆弱性は見つかりませんでした。</Text>
-      )}
+        return (
+          <Table
+            columns={columns}
+            data={targetCve}
+            selectColumnProps={false}
+            key={"cve-table"}
+            cellProps={({ column, getValue }) => {
+              if (column.columnDef.header === "CVSS") {
+                return {
+                  bg: getBackgroundColor(getValue()),
+                };
+              }
+              return {};
+            }}
+          />
+        );
+      })}
     </Box>
   );
 };
