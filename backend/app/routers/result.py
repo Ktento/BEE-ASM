@@ -38,7 +38,7 @@ def show(
 		)
 		except: pass
 
-	if session.config.enable_subfinder:
+	if session.config.enable_subfinder or session.config.enable_nmap:
 		try: r.subfinder = ResultSubfinderModel(hosts=session.result.subfinder)
 		except: pass
 
