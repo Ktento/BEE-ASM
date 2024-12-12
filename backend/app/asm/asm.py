@@ -136,6 +136,9 @@ class Asm:
 					if hostIp is not None: hostIp = hostIp.attrib["addr"]
 					# それも無ければ不明として扱う
 					theName = hostnameUser if hostnameUser is not None else hostIp if hostIp is not None else "<hostname/address unknown>"
+					# ユーザー入力のホスト名とIPアドレスの組を一時的にsubfinderに追記する
+					if hostnameUser is not None and hostIp is not None:
+						session.result.subfinder[hostnameUser] = hostIp
 
 					xmlPorts = host.findall("./ports/port")
 					for xmlPort in xmlPorts:
@@ -199,7 +202,6 @@ class Asm:
 				session.result.cve_data.reverse()
 				# レポートする
 				Report.ProcReport(ctx).makereport()
-				
 			except Exception as e:
 				Log(Level.ERROR, f"[Report] Report failed: {e}")
 			finally:
