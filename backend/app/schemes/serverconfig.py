@@ -22,17 +22,17 @@ class ServerConfigModel(BaseModel):
 
 	# DB接続情報を設定
 
-	host: str = PrivateAttr("mbsd-db.cpmyoiaqiinr.us-east-1.rds.amazonaws.com")
-	"""EC2のパブリックIPまたはDNS名"""
+	# host: str = PrivateAttr("mbsd-db.cpmyoiaqiinr.us-east-1.rds.amazonaws.com")
+	# """EC2のパブリックIPまたはDNS名"""
 
-	port: int = PrivateAttr(5432)
-	"""PostgreSQLのデフォルトポート"""
+	# port: int = PrivateAttr(5432)
+	# """PostgreSQLのデフォルトポート"""
 
-	database: str = PrivateAttr("mbsd")
-	"""データベース名"""
+	# database: str = PrivateAttr("mbsd")
+	# """データベース名"""
 
-	user: str = PrivateAttr("mbsd")
-	"""PostgreSQLのユーザー名"""
+	# user: str = PrivateAttr("mbsd")
+	# """PostgreSQLのユーザー名"""
 
-	password: str = PrivateAttr("Sangi!Bonvoyage")
-	"""ユーザーパスワード"""
+	# password: str = PrivateAttr("Sangi!Bonvoyage")
+	# """ユーザーパスワード"""
