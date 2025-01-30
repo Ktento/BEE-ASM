@@ -25,6 +25,7 @@ class Result():
 	cve_data: list[Any] = []
 	host_cpes: dict[str, set[str]] = dict()
 	host_cpe_ports: dict[tuple[str, str], set[str]] = dict()
+	host_ports: dict[str, set[str]] = dict()
 
 	# DuckDuckGo
 	web: str = ""

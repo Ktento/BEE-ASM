@@ -29,10 +29,16 @@ def show(
 	r = ResultModel()
 
 	if session.config.enable_nmap:
-		try: r.nmap = ResultNmapModel(result=session.result.nmap_stdout, stderr=session.result.nmap_stderr)
+		try: r.nmap = ResultNmapModel(
+			result=session.result.nmap_stdout,
+			stderr=session.result.nmap_stderr,
+			host_cpes=session.result.host_cpes,
+			host_cpe_ports=[HostCpePortsModel(host=k[0], cpe=k[1], ports=session.result.host_cpe_ports[k]) for k in session.result.host_cpe_ports.keys()],
+			host_ports=session.result.host_ports
+		)
 		except: pass
 
-	if session.config.enable_subfinder:
+	if session.config.enable_subfinder or session.config.enable_nmap:
 		try: r.subfinder = ResultSubfinderModel(hosts=session.result.subfinder)
 		except: pass
 
@@ -53,8 +59,6 @@ def show(
 		try: r.cve = ResultCveModel(
 			cves=session.result.cves,
 			cve_data=session.result.cve_data,
-			host_cpes=session.result.host_cpes,
-			host_cpe_ports=[HostCpePortsModel(host=k[0], cpe=k[1], ports=session.result.host_cpe_ports[k]) for k in session.result.host_cpe_ports.keys()]
 		)
 		except: pass
 

@@ -1,4 +1,3 @@
-// 主な型定義
 export type Result = {
   subfinder?: SubfinderResult;
   nmap?: NmapResult;
@@ -18,18 +17,25 @@ export type HostInfo = {
 export type NmapResult = {
   result?: string;
   stderr?: string; // デバッグ情報やエラーメッセージ
+  host_cpes?: HostCPEs; // 追加：ホストと関連するCPE文字列
+  host_cpe_ports?: HostCPEPorts[]; // 追加：「ホストとCPEの組」に対応するプロトコルとポート番号の配列
+  host_ports: HostPorts;
+};
+
+export type HostPorts = {
+  [key: string]: string[];
 };
 
 export type CveResult = {
   cves?: {
     [key: string]: CVEInfo[]; // 各CPEに関連付けられたCVE情報のリスト
   };
+  cve_data?: CVEData[]; // 追加：CVE情報のサブセット
 };
 
 export type CVEInfo = {
   refmap?: RefMap;
   vulnerable_configuration?: VulnerableConfiguration[];
-  //   vulnerable_configuration_cpe_2_2?: string[]; // 空配列の場合
   vulnerable_product?: string[];
   statements?: Statement[];
   Modified?: string;
@@ -48,6 +54,27 @@ export type CVEInfo = {
   references?: string[];
   summary?: string;
 };
+
+export type CVEData = {
+  cpe: string; // CPE文字列
+  id: string; // CVE ID
+  published: string; // 公開日時（ISO 8601形式）
+  published_str: string; // 公開日時（文字列形式）
+  cvss: number; // CVSSスコア
+  cvss3: number; // CVSS v3スコア
+  summary: string; // 脆弱性の概要
+  gemini?: string; // 脆弱性評価の説明や追加情報
+};
+
+export type HostCPEs = {
+  [host: string]: string[]; // 各ホストと関連付けられたCPE文字列の配列
+};
+
+export type HostCPEPorts = {
+  host: string; // ホスト名またはIPアドレス
+  cpe: string; // CPE文字列
+  ports: string[]; // プロトコルとポート番号の配列（例: "tcp/80"）
+}[];
 
 export type RefMap = {
   bugtraq?: string[];

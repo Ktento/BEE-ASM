@@ -14,6 +14,7 @@ import { useLocation } from "react-router-dom";
 import { Result } from "../types/Restult";
 import { ResultPanel } from "../components/ResultPanel";
 import { ApiService } from "../services/ApiService";
+import { ResultGraphCvss } from "../components/ResultGraphCvss";
 
 function Success() {
   const location = useLocation();
@@ -55,7 +56,6 @@ function Success() {
   };
 
   if (!sessionId) {
-    // Todo: add sorry page
     return (
       <Box>
         <Heading>セッションが見つかりません。</Heading>
@@ -66,7 +66,8 @@ function Success() {
   return (
     <Box as={"main"} p={5}>
       <Box p={5} display={"flex"} justifyContent={"space-between"}>
-        <Heading>送信が成功しました！</Heading>
+        <Heading>{result ? "結果" : "送信が成功しました！"}</Heading>
+        {result && <ResultGraphCvss result={result} />}
         <Button colorScheme="purple" onClick={() => setIsOpen(true)}>
           ホームに戻る
         </Button>
@@ -86,12 +87,7 @@ function Success() {
             />
           </>
         )}
-        {result && (
-          <Box>
-            <Heading>結果</Heading>
-            <ResultPanel result={result} />
-          </Box>
-        )}
+        {result && <ResultPanel result={result} />}
       </Box>
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         <ModalHeader>ホームに戻る</ModalHeader>
