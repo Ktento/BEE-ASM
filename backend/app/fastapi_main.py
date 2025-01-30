@@ -18,7 +18,7 @@ app.include_router(result.router)
 # CORS ミドルウェアを追加
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=["http://ec2-34-229-220-192.compute-1.amazonaws.com","http://bee.sangi-mirai.jp"],  # フロントエンドのオリジンを許可
+	allow_origins=["http://ec2-34-229-220-192.compute-1.amazonaws.com","http://bee.sangi-mirai.jp","http://localhost:5173"],  # フロントエンドのオリジンを許可
 	allow_credentials=True,
 	allow_methods=["*"],  # 全てのHTTPメソッドを許可
 	allow_headers=["*"],  # 全てのHTTPヘッダーを許可
