@@ -20,6 +20,7 @@ export type Config = {
   report_enable_gemini: boolean;
   report_enable_bcc: boolean;
   report_from: string;
+  smtp_password: string;
 
   // nmap config
   enable_nmap: boolean;

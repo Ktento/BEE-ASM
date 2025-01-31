@@ -122,7 +122,35 @@ export const ReportSettings = (props: SettingProps) => {
                 <Button onClick={() => handleRemoveEmail(index)}>-</Button>
               </Box>
             ))}
+          </FormControl>
+          <FormControl label="送信元メールアドレス">
+            <Input
+              type="email"
+              value={props.config.report_from}
+              onChange={(e) =>
+                props.setConfig({
+                  ...props.config,
+                  report_from: e.target.value,
+                })
+              }
+              placeholder="sender@example.com"
+              width={breakpoint !== "sm" ? "50%" : "full"}
+            />
             <Button onClick={handleAddEmail}>+</Button>
+            <FormControl label="SMTPパスワード">
+              <Input
+                type="password" // パスワードフィールドとして表示
+                placeholder="SMTPパスワードを入力"
+                value={props.config.smtp_password}
+                onChange={(e) =>
+                  props.setConfig({
+                    ...props.config,
+                    smtp_password: e.target.value,
+                  })
+                }
+                width={breakpoint != "sm" ? "50%" : "full"}
+              />
+            </FormControl>
           </FormControl>
           <FormControl label="Geminiにレビューさせる件数">
             <Input

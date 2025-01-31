@@ -144,7 +144,7 @@ class ProcReport:
 		# サーバを指定してメールを送信する
 		smtp_host = 'smtp.gmail.com'
 		smtp_port = 587
-		smtp_password = 'efbw jvxw mrnc cvdm'
+		smtp_password = self.__context.config.smtp_password
 
 		server = None
 		try:
