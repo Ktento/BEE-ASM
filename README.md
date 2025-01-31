@@ -32,7 +32,7 @@
 
 #### Docker を使用する場合
 
-1. start.sh を実行(バックエンド、フロントエンドの起動)
+1. start.sh or start.bat(windows)を実行(バックエンド、フロントエンドの起動)
 2. localhost にアクセスし設定を行ったあと実行してください
 
 #### Docker を使用しない場合
