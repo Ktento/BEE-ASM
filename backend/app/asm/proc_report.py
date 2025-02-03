@@ -35,7 +35,7 @@ class ProcReport:
 
 	def review_description(self, description):
 		# print(f"description: {description}")
-		API_KEY = self.__context.session.server_config._gemini_api_key
+		API_KEY = self.__context.config.gemini_api_key
 		END_POINT = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_KEY}"
 		custom_txt = """
 		依頼: CVEの説明を下記に記載するので、日本語で脆弱性評価をしてください。
@@ -144,7 +144,7 @@ class ProcReport:
 		# サーバを指定してメールを送信する
 		smtp_host = 'smtp.gmail.com'
 		smtp_port = 587
-		smtp_password = 'efbw jvxw mrnc cvdm'
+		smtp_password = self.__context.config.smtp_password
 
 		server = None
 		try:
