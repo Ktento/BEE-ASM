@@ -123,7 +123,7 @@ export const ReportSettings = (props: SettingProps) => {
               </Box>
             ))}
           </FormControl>
-          <FormControl label="送信元メールアドレス">
+          <FormControl label="送信元メールアドレス(gmail)">
             <Input
               type="email"
               value={props.config.report_from}
@@ -137,10 +137,10 @@ export const ReportSettings = (props: SettingProps) => {
               width={breakpoint !== "sm" ? "50%" : "full"}
             />
             <Button onClick={handleAddEmail}>+</Button>
-            <FormControl label="SMTPパスワード">
+            <FormControl label="アプリパスワード">
               <Input
                 type="password" // パスワードフィールドとして表示
-                placeholder="SMTPパスワードを入力"
+                placeholder="アプリパスワードを入力"
                 value={props.config.smtp_password}
                 onChange={(e) =>
                   props.setConfig({
@@ -163,6 +163,20 @@ export const ReportSettings = (props: SettingProps) => {
                 })
               }
               width={"20%"}
+            />
+          </FormControl>
+          <FormControl label="Gemini APIキー">
+            <Input
+              type="text"
+              placeholder="Gemini APIキーを入力"
+              value={props.config.gemini_api_key}
+              onChange={(e) =>
+                props.setConfig({
+                  ...props.config,
+                  gemini_api_key: e.target.value,
+                })
+              }
+              width={breakpoint !== "sm" ? "50%" : "full"}
             />
           </FormControl>
         </Box>

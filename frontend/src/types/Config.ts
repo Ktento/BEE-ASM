@@ -18,6 +18,7 @@ export type Config = {
   report_min_cvss3: number;
   report_csv_encoding: string;
   report_enable_gemini: boolean;
+  gemini_api_key:string;
   report_enable_bcc: boolean;
   report_from: string;
   smtp_password: string;

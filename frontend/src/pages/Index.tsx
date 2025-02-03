@@ -23,6 +23,7 @@ function Index() {
     report_min_cvss3: 0,
     report_csv_encoding: "",
     report_enable_gemini: true,
+    gemini_api_key: "",
     report_enable_bcc: true,
     report_from: "",
     smtp_password: "",
