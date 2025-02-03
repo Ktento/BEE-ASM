@@ -54,6 +54,8 @@ CVSS, CVSS3 スコアが不明なものは`-1.0`として扱われます。
 
 有効な API キーを設定してください
 
+- [Gemini 公式サイト](https://aistudio.google.com/app/apikey)
+
 #### API サーバーの実行方法
 
 `backend/app/fastapi_main.py`を Uvicorn で実行してください。
